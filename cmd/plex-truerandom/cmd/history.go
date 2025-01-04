@@ -2,11 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"time"
 
-	"github.com/LukeHagar/plexgo"
-	plexrando "github.com/drewstinnett/plex-truerandom"
 	"github.com/spf13/cobra"
 )
 
@@ -15,13 +12,7 @@ var historyCmd = &cobra.Command{
 	Use:   "history",
 	Short: "Session history",
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		p := plexrando.New(plexrando.WithAPI(plexgo.New(
-			plexgo.WithSecurity(os.Getenv("PLEX_TOKEN")),
-			plexgo.WithServerURL(os.Getenv("PLEX_URL")),
-			plexgo.WithClientID("313FF6D7-5795-45E3-874F-B8FCBFD5E587"),
-			plexgo.WithClientName("plex-trueget"),
-			plexgo.WithClientVersion("0.0.1"),
-		)))
+		p := newPlex()
 
 		viewed, err := p.Viewed(mustGetCmd[string](*cmd, "library"), time.Now().Add(-time.Hour*24*14))
 		if err != nil {

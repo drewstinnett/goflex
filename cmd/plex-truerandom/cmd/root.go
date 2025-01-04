@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/LukeHagar/plexgo"
 	"github.com/charmbracelet/log"
 	plexrando "github.com/drewstinnett/plex-truerandom"
 	"github.com/spf13/cobra"
@@ -33,16 +32,7 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cmd.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose logging")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	cobra.OnInitialize(initConfig)
 }
 
@@ -52,8 +42,6 @@ func initConfig() {
 		ReportTimestamp: true,
 		Prefix:          "plex-truerandom 🍿 ",
 	}
-
-	// Zerolog deprecated
 	if verbose {
 		opts.Level = log.DebugLevel
 	}
@@ -62,11 +50,16 @@ func initConfig() {
 }
 
 func newPlex() *plexrando.Plex {
-	return plexrando.New(plexrando.WithAPI(plexgo.New(
-		plexgo.WithSecurity(os.Getenv("PLEX_TOKEN")),
-		plexgo.WithServerURL(os.Getenv("PLEX_URL")),
-		plexgo.WithClientID("313FF6D7-5795-45E3-874F-B8FCBFD5E587"),
-		plexgo.WithClientName("plex-trueget"),
-		plexgo.WithClientVersion("0.0.1"),
-	)))
+	opts := []func(*plexrando.Plex){
+		plexrando.WithBaseURL(os.Getenv("PLEX_URL")),
+		plexrando.WithToken(os.Getenv("PLEX_TOKEN")),
+	}
+	if os.Getenv("DEBUG_CURL") != "" {
+		opts = append(opts, plexrando.WithPrintCurl())
+	}
+	p, err := plexrando.New(opts...)
+	if err != nil {
+		panic(err)
+	}
+	return p
 }

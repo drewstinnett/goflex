@@ -8,6 +8,7 @@ require (
 	github.com/drewstinnett/gout/v2 v2.3.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
+	moul.io/http2curl/v2 v2.3.0
 )
 
 require (
