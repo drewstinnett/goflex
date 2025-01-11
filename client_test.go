@@ -8,19 +8,19 @@ import (
 
 func TestSubtract(t *testing.T) {
 	given := EpisodeList{
-		{ID: "foo"},
-		{ID: "bar"},
-		{ID: "baz"},
+		{DeprecatedID: "foo"},
+		{DeprecatedID: "bar"},
+		{DeprecatedID: "baz"},
 	}
 	remaining, removed := given.Subtract(EpisodeList{
-		{ID: "bar"},
+		{DeprecatedID: "bar"},
 	})
 	require.Equal(t, EpisodeList{
-		{ID: "foo"},
-		{ID: "baz"},
+		{DeprecatedID: "foo"},
+		{DeprecatedID: "baz"},
 	}, remaining)
 	require.Equal(t, EpisodeList{
-		{ID: "bar"},
+		{DeprecatedID: "bar"},
 	}, removed)
 }
 

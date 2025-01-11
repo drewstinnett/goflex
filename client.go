@@ -27,22 +27,26 @@ const version string = "0.1.0"
 
 // Plex connects to our custom stuff
 type Plex struct {
-	serverID       string
-	baseURL        string
-	token          string
-	printCurl      bool
-	client         *http.Client
-	API            *plexgo.PlexAPI
-	libraryMap     map[string]int
-	playlistMap    map[string]Playlist
-	showLibraryMap map[string]string
-	episodeIndex   map[string]map[int]map[int]string
+	serverID     string
+	baseURL      string
+	token        string
+	printCurl    bool
+	client       *http.Client
+	API          *plexgo.PlexAPI
+	initialize   bool
+	libraryCache map[string]Library
+	// libraryMap   map[string]int
+	playlistMap map[string]Playlist
+	// showLibraryMap map[string]string
+	// episodeIndex map[string]map[int]map[int]string
+	Playlists PlaylistService
 }
 
 // New uses functional options for a new plex
 func New(opts ...func(*Plex)) (*Plex, error) {
 	p := &Plex{
-		client: http.DefaultClient,
+		initialize: true,
+		client:     http.DefaultClient,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -62,10 +66,20 @@ func New(opts ...func(*Plex)) (*Plex, error) {
 		plexgo.WithClientName("plex-trueget"),
 		plexgo.WithClientVersion(version),
 	)
-	if err := p.init(); err != nil {
-		panic(err)
+	p.Playlists = &PlaylistServiceOp{p: p}
+	if p.initialize {
+		if err := p.init(); err != nil {
+			panic(err)
+		}
 	}
 	return p, nil
+}
+
+// WithoutInit skips the initialization step
+func WithoutInit() func(*Plex) {
+	return func(p *Plex) {
+		p.initialize = false
+	}
 }
 
 // WithHTTPClient sets the http client on a new Plex
@@ -98,7 +112,8 @@ func WithPrintCurl() func(*Plex) {
 
 // Episode represents an episode of television
 type Episode struct {
-	ID             string // ID is pretty much just the RatingKey
+	ID             int
+	DeprecatedID   string // ID is pretty much just the RatingKey
 	PlaylistItemID string
 	Title          string
 	Show           string
@@ -145,7 +160,7 @@ func (l *EpisodeList) Subtract(s EpisodeList) (EpisodeList, EpisodeList) {
 	removed := EpisodeList{}
 	ids := s.IDs()
 	for _, item := range *l {
-		if !slices.Contains(ids, item.ID) {
+		if !slices.Contains(ids, item.DeprecatedID) {
 			r = append(r, item)
 		} else {
 			removed = append(removed, item)
@@ -167,7 +182,7 @@ func (l EpisodeList) URIList() []string {
 func (l EpisodeList) IDs() []string {
 	ret := make([]string, len(l))
 	for idx, item := range l {
-		ret[idx] = item.ID
+		ret[idx] = item.DeprecatedID
 	}
 	return ret
 }
@@ -175,18 +190,18 @@ func (l EpisodeList) IDs() []string {
 // NewEpisode returns a new Episode from a operations.GetPlaylistContentsMetadata
 func (p *Plex) NewEpisode(item operations.GetPlaylistContentsMetadata) Episode {
 	return Episode{
-		ID:    *item.RatingKey,
-		Title: *item.Title,
-		p:     p,
+		DeprecatedID: *item.RatingKey,
+		Title:        *item.Title,
+		p:            p,
 	}
 }
 
 // NewEpisodeWithChildrenMeta uses operations.GetMetadataChildrenMetadata to create a new episode
 func (p *Plex) NewEpisodeWithChildrenMeta(item operations.GetMetadataChildrenMetadata) Episode {
 	return Episode{
-		ID:    *item.RatingKey,
-		Title: *item.Title,
-		p:     p,
+		DeprecatedID: *item.RatingKey,
+		Title:        *item.Title,
+		p:            p,
 	}
 }
 
@@ -200,19 +215,19 @@ func (p *Plex) NewEpisodeWithSession(item operations.GetSessionHistoryMetadata) 
 	}
 	watched := time.Unix(int64(*item.ViewedAt), 0)
 	return &Episode{
-		ID:      *item.RatingKey,
-		Show:    *item.GrandparentTitle,
-		Season:  *item.ParentIndex,
-		Episode: *item.Index,
-		Title:   *item.Title,
-		Watched: &watched,
-		p:       p,
+		DeprecatedID: *item.RatingKey,
+		Show:         *item.GrandparentTitle,
+		Season:       *item.ParentIndex,
+		Episode:      *item.Index,
+		Title:        *item.Title,
+		Watched:      &watched,
+		p:            p,
 	}, nil
 }
 
 // URI returns the URI for an episode. This is the format the Playlist stuff needs
 func (e Episode) URI() string {
-	return fmt.Sprintf("server://%v/com.plexapp.plugins.library/library/metadata/%v", e.p.serverID, e.ID)
+	return fmt.Sprintf("server://%v/com.plexapp.plugins.library/library/metadata/%v", e.p.serverID, e.DeprecatedID)
 }
 
 // String fulfills the Stringer interface
@@ -220,9 +235,9 @@ func (e Episode) String() string {
 	var ret string
 	switch {
 	case e.Show == "":
-		ret = fmt.Sprintf("%v - %v", e.ID, e.Title)
+		ret = fmt.Sprintf("%v - %v", e.DeprecatedID, e.Title)
 	default:
-		ret = fmt.Sprintf("%v - S%02dE%02d", e.Show, e.Season, e.Episode)
+		ret = fmt.Sprintf("%v - S%02dE%02d - %v", e.Show, e.Season, e.Episode, e.Title)
 	}
 	if e.Watched != nil {
 		ret = fmt.Sprintf("%v (Watched: %v)", ret, e.Watched.Format("2006-01-02 15:04"))
@@ -239,9 +254,6 @@ func WithAPI(a *plexgo.PlexAPI) func(*Plex) {
 
 func (p *Plex) init() error {
 	if err := p.serverInfo(); err != nil {
-		return err
-	}
-	if err := p.updateSections(); err != nil {
 		return err
 	}
 	return p.updatePlaylists()
@@ -273,28 +285,11 @@ func (p *Plex) updatePlaylists() error {
 			duration = time.Duration(*playlist.Duration) * time.Second
 		}
 		p.playlistMap[*playlist.Title] = Playlist{
-			ID:       k,
-			URI:      *playlist.GUID,
-			Duration: duration,
-			p:        p,
+			IDDeprecated: k,
+			GUID:         *playlist.GUID,
+			Duration:     duration,
+			p:            p,
 		}
-	}
-	return nil
-}
-
-func (p *Plex) updateSections() error {
-	p.libraryMap = map[string]int{}
-	ctx := context.Background()
-	lib, err := p.API.Library.GetAllLibraries(ctx)
-	if err != nil {
-		return err
-	}
-	for _, libd := range lib.Object.MediaContainer.Directory {
-		id, err := strconv.Atoi(libd.Key)
-		if err != nil {
-			return err
-		}
-		p.libraryMap[libd.Title] = id
 	}
 	return nil
 }
@@ -318,9 +313,9 @@ func (p *Plex) GetOrCreatePlaylist(s string) (*Playlist, bool, error) {
 		}
 		// duration := res.
 		return &Playlist{
-			ID:  k,
-			URI: *res.Object.MediaContainer.Metadata[0].GUID,
-			p:   p,
+			IDDeprecated: k,
+			GUID:         *res.Object.MediaContainer.Metadata[0].GUID,
+			p:            p,
 		}, true, nil
 	}
 	/*
@@ -333,14 +328,14 @@ func (p *Plex) GetOrCreatePlaylist(s string) (*Playlist, bool, error) {
 
 // Clear empties the playlist of all contents
 func (l *Playlist) Clear() error {
-	_, err := l.p.API.Playlists.ClearPlaylistContents(context.Background(), l.ID)
+	_, err := l.p.API.Playlists.ClearPlaylistContents(context.Background(), l.IDDeprecated)
 	return err
 }
 
 // Viewed returns a list of recently viewed episodes
 func (p *Plex) Viewed(library string, since time.Time) (EpisodeList, error) {
 	inProcess := []string{}
-	lib := p.libraryMap[library]
+	lib := p.libraryCache[library].ID
 	current, err := p.API.Sessions.GetSessions(
 		context.Background(),
 	)
@@ -384,14 +379,14 @@ func (p *Plex) Viewed(library string, since time.Time) (EpisodeList, error) {
 
 // Episodes returns a list of episodes for a show
 func (p *Plex) Episodes(library, show string) (EpisodeList, error) {
-	id, ok := p.libraryMap[library]
+	lib, ok := p.libraryCache[library]
 	if !ok {
 		return nil, fmt.Errorf("unknown library: %v", library)
 	}
 	ret := EpisodeList{}
 	res, err := p.API.Library.GetLibraryItems(context.Background(), operations.GetLibraryItemsRequest{
 		Tag:         "all",
-		SectionKey:  id,
+		SectionKey:  lib.ID,
 		IncludeMeta: operations.GetLibraryItemsQueryParamIncludeMetaEnable.ToPointer(),
 	})
 	if err != nil {
@@ -431,8 +426,10 @@ type playlistEpisodeCache map[string]map[int]map[int]string
 
 // Playlist is the important identifiers of a playlist
 type Playlist struct {
-	ID           float64
-	URI          string
+	IDDeprecated float64
+	ID           int
+	Title        string
+	GUID         string
 	Duration     time.Duration
 	p            *Plex
 	episodeCache playlistEpisodeCache
@@ -444,7 +441,7 @@ func (l *Playlist) AddEpisodes(episodes EpisodeList) error {
 	ret := &EpisodeList{}
 	for idx, episode := range episodes {
 		i := float64(idx)
-		if _, err := l.p.API.Playlists.AddPlaylistContents(context.Background(), l.ID, episode.URI(), &i); err != nil {
+		if _, err := l.p.API.Playlists.AddPlaylistContents(context.Background(), l.IDDeprecated, episode.URI(), &i); err != nil {
 			return err
 		}
 		slog.Debug("Adding", "episode", episode.String())
@@ -457,144 +454,15 @@ func (l *Playlist) AddEpisodes(episodes EpisodeList) error {
 func (l *Playlist) AddEpisode(episode Episode) error {
 	slog.Debug("Adding episode back in", "count", episode)
 	idx := float64(len(l.episodeCache))
-	if _, err := l.p.API.Playlists.AddPlaylistContents(context.Background(), l.ID, episode.URI(), &idx); err != nil {
+	if _, err := l.p.API.Playlists.AddPlaylistContents(context.Background(), l.IDDeprecated, episode.URI(), &idx); err != nil {
 		return err
 	}
 	slog.Debug("Adding", "episode", episode.String())
 	return l.p.updatePlaylists()
 }
 
-// Playlist returns a new playlist by the name
-
-// Playlist returns a new playlist by the name
-func (p *Plex) Playlist(s string) (*Playlist, error) {
-	pl, ok := p.playlistMap[s]
-	if !ok {
-		return nil, fmt.Errorf("playlist not found. requested: %v, available: %v", s, p.playlistMap)
-	}
-	return &pl, nil
-}
-
-// DeleteEpisode removes an item by title, season number,  episode number
-func (l *Playlist) DeleteEpisode(show string, season, episode int) error {
-	if show == "" {
-		return errors.New("cannot delete episode with empty show")
-	}
-	k, err := l.EpisodeKey(show, season, episode)
-	if err != nil {
-		return err
-	}
-	return l.DeleteItem(k)
-}
-
-func (l *Playlist) updateEpisodeCache(episodes *EpisodeList) {
-	c := playlistEpisodeCache{}
-	for _, e := range *episodes {
-		if _, ok := c[e.Show]; !ok {
-			c[e.Show] = map[int]map[int]string{}
-		}
-		if _, ok := c[e.Show][e.Season]; !ok {
-			c[e.Show][e.Season] = map[int]string{}
-		}
-		c[e.Show][e.Season][e.Episode] = e.PlaylistItemID
-	}
-	l.episodeCache = c
-}
-
 func (p *Plex) EpisodeKey(show string, season, episode int) (string, error) {
 	return "", errors.New("not yet implemented")
-}
-
-func (p *Plex) updateEpisodes(show string) error {
-	if p.episodeIndex == nil {
-		p.episodeIndex = map[string]map[int]map[int]string{}
-	}
-	if _, ok := p.episodeIndex[show]; !ok {
-		p.episodeIndex[show] = map[int]map[int]string{}
-	}
-	return errors.New("not yet implemented")
-}
-
-// EpisodeKey returns the key of an episode, based on the title, season and episode
-func (l *Playlist) EpisodeKey(title string, season, episode int) (string, error) {
-	if l.episodeCache == nil {
-		episodes, err := l.Episodes()
-		if err != nil {
-			return "", nil
-		}
-		l.updateEpisodeCache(&episodes)
-	}
-	if _, ok := l.episodeCache[title]; !ok {
-		return "", fmt.Errorf("show not found in episode cache: %v", title)
-	}
-	if _, ok := l.episodeCache[title][season]; !ok {
-		return "", fmt.Errorf("season not found in episode cache: %v: s%02d", title, season)
-	}
-	key, ok := l.episodeCache[title][season][episode]
-	if !ok {
-		return "", fmt.Errorf("episode not found in episode cache: %v s%02de%02d", title, season, episode)
-	}
-	return key, nil
-}
-
-// DeleteItem removes an item from the given playlist
-func (l *Playlist) DeleteItem(keys ...string) error {
-	for _, k := range keys {
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%v/playlists/%v/items/%v", l.p.baseURL, l.ID, k), nil)
-		if err != nil {
-			return err
-		}
-		var got struct{}
-		if err := l.p.sendRequest(req, &got); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// Episodes returns a new playlist by the name
-func (l *Playlist) Episodes() (EpisodeList, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/playlists/%v/items", l.p.baseURL, l.ID), nil)
-	if err != nil {
-		return nil, err
-	}
-	var plr PlaylistResponse
-	if err := l.p.sendRequest(req, &plr); err != nil {
-		return nil, err
-	}
-	ret := EpisodeList{}
-	for _, item := range plr.Video {
-		parentI, err := strconv.Atoi(item.ParentIndex)
-		if err != nil {
-			return nil, err
-		}
-		index, err := strconv.Atoi(item.Index)
-		if err != nil {
-			return nil, err
-		}
-
-		var viewedInt int64
-		if item.LastViewedAt != "" {
-			var err error
-			viewedInt, err = strconv.ParseInt(item.LastViewedAt, 10, 64)
-			if err != nil {
-				return nil, err
-			}
-		}
-		viewed := time.Unix(viewedInt, 0)
-		ret = append(ret, Episode{
-			ID:             item.RatingKey,
-			PlaylistItemID: item.PlaylistItemID,
-			Title:          item.Title,
-			Show:           item.GrandparentTitle,
-			Season:         parentI,
-			Episode:        index,
-			Watched:        &viewed,
-			p:              l.p,
-		})
-	}
-
-	return ret, nil
 }
 
 func (p *Plex) sendRequest(req *http.Request, v interface{}) error {

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaContainer size="11" allowSync="1" art="/:/resources/show-fanart.jpg" content="secondary" identifier="com.plexapp.plugins.library" librarySectionID="2" librarySectionTitle="TV Shows" librarySectionUUID="69a7e0d6-f1a2-463b-a360-baec8bc1a98c" mediaTagPrefix="/system/bundle/media/flags/" mediaTagVersion="1731522690" nocache="1" thumb="/:/resources/show.png" title1="TV Shows" title2="All Shows" viewGroup="show">
+<Directory ratingKey="25040" key="/library/metadata/25040/children" guid="plex://show/5d9c086c7d06d9001ffd27b2" slug="american-dad" studio="20th Century Fox Television" type="show" title="American Dad!" contentRating="TV-14" summary="The escapades of Stan Smith, a conservative C.I.A. Agent dealing with family life, and keeping America safe." index="1" audienceRating="7.0" viewCount="9536" skipCount="16" lastViewedAt="1735881460" year="2005" tagline="From the creator of &#34;Family Guy&#34; comes a man who will stop at nothing to protect his country." thumb="/library/metadata/25040/thumb/1735791604" art="/library/metadata/25040/art/1735791604" theme="/library/metadata/25040/theme/1735791604" duration="1320000" originallyAvailableAt="2005-02-06" leafCount="369" viewedLeafCount="355" childCount="21" addedAt="1728245183" updatedAt="1735791604" audienceRatingImage="themoviedb://image.rating">
+<Image alt="American Dad!" type="coverPoster" url="/library/metadata/25040/thumb/1735791604" />
+<Image alt="American Dad!" type="background" url="/library/metadata/25040/art/1735791604" />
+<Image alt="American Dad!" type="clearLogo" url="/library/metadata/25040/clearLogo/1735791604" />
+<UltraBlurColors topLeft="102f4d" topRight="265476" bottomRight="234e6e" bottomLeft="a62519" />
+<Genre tag="Animation" />
+<Genre tag="Comedy" />
+<Country tag="United States of America" />
+<Role tag="Seth MacFarlane" />
+<Role tag="Wendy Schaal" />
+<Role tag="Rachael MacFarlane" />
+</Directory>
+<Directory ratingKey="1424" key="/library/metadata/1424/children" guid="plex://show/5d9c080102391c001f57ea12" slug="aqua-teen-hunger-force" studio="Williams Street" type="show" title="Aqua Teen Hunger Force" contentRating="TV-MA" summary="The Aqua Teen Hunger Force debuted on episode 92 &#34;Baffler Meal&#34; of the cartoon talk-show &#34;Space Ghost Coast to Coast&#34; According to TVtome.com, Master Shake is portrayed as being a chocolate milkshake in this episode, although he&#39;s a pistachio shake in the series" index="1" audienceRating="7.5" year="2000" tagline="Is a black shake a mistake?" thumb="/library/metadata/1424/thumb/1733460016" art="/library/metadata/1424/art/1733460016" theme="/library/metadata/1424/theme/1733460016" duration="660000" originallyAvailableAt="2000-12-30" leafCount="28" viewedLeafCount="26" childCount="2" addedAt="1389024695" updatedAt="1733460016" audienceRatingImage="themoviedb://image.rating">
+<Image alt="Aqua Teen Hunger Force" type="coverPoster" url="/library/metadata/1424/thumb/1733460016" />
+<Image alt="Aqua Teen Hunger Force" type="background" url="/library/metadata/1424/art/1733460016" />
+<UltraBlurColors topLeft="551212" topRight="6c5c2a" bottomRight="aa1f20" bottomLeft="30662b" />
+<Genre tag="Animation" />
+<Genre tag="Comedy" />
+<Country tag="United States of America" />
+<Role tag="Dave Willis" />
+<Role tag="Dana Snyder" />
+<Role tag="C. Martin Croker" />
+</Directory>
+<Directory ratingKey="16373" key="/library/metadata/16373/children" guid="plex://show/5d9c08254eefaa001f5d6dcb" slug="better-call-saul" studio="Sony Pictures Television" type="show" title="Better Call Saul" contentRating="TV-MA" summary="Before Saul Goodman, he was Jimmy McGill. And if you&#39;re calling Jimmy, you&#39;re in real trouble. The prequel to &#34;Breaking Bad&#34; follows small-time attorney, Jimmy McGill, as he transforms into Walter White&#39;s morally challenged lawyer, Saul Goodman." index="1" audienceRating="8.7" year="2015" tagline="Make the call" thumb="/library/metadata/16373/thumb/1734319486" art="/library/metadata/16373/art/1734319486" theme="/library/metadata/16373/theme/1734319486" duration="2700000" originallyAvailableAt="2015-02-08" leafCount="13" viewedLeafCount="12" childCount="1" addedAt="1659218993" updatedAt="1734319486" audienceRatingImage="themoviedb://image.rating" hasPremiumPrimaryExtra="1" primaryExtraKey="/library/metadata/16397">
+<Image alt="Better Call Saul" type="coverPoster" url="/library/metadata/16373/thumb/1734319486" />
+<Image alt="Better Call Saul" type="background" url="/library/metadata/16373/art/1734319486" />
+<Image alt="Better Call Saul" type="clearLogo" url="/library/metadata/16373/clearLogo/1734319486" />
+<UltraBlurColors topLeft="0e3435" topRight="29696a" bottomRight="53652f" bottomLeft="143224" />
+<Genre tag="Crime" />
+<Genre tag="Drama" />
+<Country tag="United States of America" />
+<Role tag="Bob Odenkirk" />
+<Role tag="Jonathan Banks" />
+<Role tag="Rhea Seehorn" />
+</Directory>
+<Directory ratingKey="1455" key="/library/metadata/1455/children" guid="plex://show/5d9c08daba6eb9001fbab81b" slug="cobra-kai" studio="Hurwitz &amp; Schlossberg Productions" type="show" title="Cobra Kai" contentRating="TV-14" summary="This Karate Kid sequel series picks up 30 years after the events of the 1984 All Valley Karate Tournament and finds Johnny Lawrence on the hunt for redemption by reopening the infamous Cobra Kai karate dojo. This reignites his old rivalry with the successful Daniel LaRusso, who has been working to maintain the balance in his life without mentor Mr. Miyagi." index="1" audienceRating="8.2" viewCount="4" lastViewedAt="1599330750" year="2018" tagline="The KARATE KID saga continues. (Season 1)" thumb="/library/metadata/1455/thumb/1734319484" art="/library/metadata/1455/art/1734319484" theme="/library/metadata/1455/theme/1734319484" duration="1800000" originallyAvailableAt="2018-05-02" leafCount="30" viewedLeafCount="4" childCount="3" addedAt="1599324418" updatedAt="1734319484" audienceRatingImage="themoviedb://image.rating" hasPremiumExtras="1" hasPremiumPrimaryExtra="1" primaryExtraKey="/library/metadata/16441">
+<Image alt="Cobra Kai" type="coverPoster" url="/library/metadata/1455/thumb/1734319484" />
+<Image alt="Cobra Kai" type="background" url="/library/metadata/1455/art/1734319484" />
+<Image alt="Cobra Kai" type="clearLogo" url="/library/metadata/1455/clearLogo/1734319484" />
+<UltraBlurColors topLeft="4c1f04" topRight="90451f" bottomRight="933f3e" bottomLeft="2c657f" />
+<Genre tag="Action" />
+<Genre tag="Comedy" />
+<Country tag="United States of America" />
+<Role tag="Ralph Macchio" />
+<Role tag="William Zabka" />
+<Role tag="Courtney Henggeler" />
+</Directory>
+<Directory ratingKey="16398" key="/library/metadata/16398/children" guid="plex://show/5d9c091046115600200aed99" slug="crikey-its-the-irwins" studio="Eureka Productions" type="show" title="Crikey! It&#39;s the Irwins" contentRating="TV-PG" summary="Follow Terri, Bindi and Robert Irwin as they run the extraordinary Australia Zoo in the bushlands of northern Australia. Caring for over 1,200 animals, overseeing a world-class wildlife hospital, and conducting high-octane global conservation expeditions, the Irwins&#8217; lives are full of adventure, fueled by their love of animals and passion for protecting them." index="1" audienceRating="8.1" year="2018" thumb="/library/metadata/16398/thumb/1734319486" art="/library/metadata/16398/art/1734319486" duration="2580000" originallyAvailableAt="2018-10-28" leafCount="18" viewedLeafCount="17" childCount="2" addedAt="1659219014" updatedAt="1734319486" audienceRatingImage="themoviedb://image.rating">
+<Image alt="Crikey! It&#39;s the Irwins" type="coverPoster" url="/library/metadata/16398/thumb/1734319486" />
+<Image alt="Crikey! It&#39;s the Irwins" type="background" url="/library/metadata/16398/art/1734319486" />
+<Image alt="Crikey! It&#39;s the Irwins" type="clearLogo" url="/library/metadata/16398/clearLogo/1734319486" />
+<UltraBlurColors topLeft="492105" topRight="9d3900" bottomRight="4e3f1a" bottomLeft="a82700" />
+<Genre tag="Documentary" />
+<Genre tag="Reality" />
+<Country tag="Australia" />
+<Country tag="United States of America" />
+<Role tag="Chandler Powell" />
+<Role tag="Bindi Irwin" />
+<Role tag="Terri Irwin" />
+</Directory>
+<Directory ratingKey="1478" key="/library/metadata/1478/children" guid="plex://show/5d9c082bd4f2a9001f7fe962" slug="doctor-who-2005" studio="BBC Cymru Wales" type="show" title="Doctor Who (2005)" contentRating="TV-PG" summary="The Doctor, a Time Lord from the race whose home planet is Gallifrey, travels through time and space in their ship the TARDIS (an acronym for Time and Relative Dimension In Space) with numerous companions. From time to time, the Doctor regenerates into a new form." index="1" audienceRating="7.5" viewCount="3" lastViewedAt="1703193221" year="2005" tagline="When two worlds collide, anything can happen... (Series 3)" thumb="/library/metadata/1478/thumb/1735707810" art="/library/metadata/1478/art/1735707810" theme="/library/metadata/1478/theme/1735707810" duration="2700000" originallyAvailableAt="2005-03-26" leafCount="144" viewedLeafCount="6" childCount="11" seasonCount="10" addedAt="1702932405" updatedAt="1735707810" audienceRatingImage="themoviedb://image.rating" hasPremiumExtras="1" hasPremiumPrimaryExtra="1" primaryExtraKey="/library/metadata/24884">
+<Image alt="Doctor Who (2005)" type="coverPoster" url="/library/metadata/1478/thumb/1735707810" />
+<Image alt="Doctor Who (2005)" type="background" url="/library/metadata/1478/art/1735707810" />
+<Image alt="Doctor Who (2005)" type="clearLogo" url="/library/metadata/1478/clearLogo/1735707810" />
+<UltraBlurColors topLeft="272b30" topRight="933e4a" bottomRight="9a3b17" bottomLeft="1d2229" />
+<Genre tag="Drama" />
+<Genre tag="Adventure" />
+<Country tag="United Kingdom" />
+<Role tag="David Tennant" />
+<Role tag="Matt Smith" />
+<Role tag="Jenna Coleman" />
+</Directory>
+<Directory ratingKey="1655" key="/library/metadata/1655/children" guid="plex://show/5d9c086c7d06d9001ffd279e" slug="family-guy" studio="20th Century Fox Television" type="show" title="Family Guy" contentRating="TV-14" summary="In a wacky Rhode Island town, a dysfunctional family strives to cope with everyday life as they are thrown from one crazy scenario to another." index="1" audienceRating="7.4" viewCount="5328" skipCount="7" lastViewedAt="1735533900" year="1999" tagline="Don&#39;t Die Laughing. We Could Get Sued (Season 4)." thumb="/library/metadata/1655/thumb/1734319484" art="/library/metadata/1655/art/1734319484" theme="/library/metadata/1655/theme/1734319484" duration="1320000" originallyAvailableAt="1999-01-31" leafCount="423" viewedLeafCount="392" childCount="22" addedAt="1597968877" updatedAt="1734319484" audienceRatingImage="themoviedb://image.rating" hasPremiumExtras="1" hasPremiumPrimaryExtra="1" primaryExtraKey="/library/metadata/14082">
+<Image alt="Family Guy" type="coverPoster" url="/library/metadata/1655/thumb/1734319484" />
+<Image alt="Family Guy" type="background" url="/library/metadata/1655/art/1734319484" />
+<Image alt="Family Guy" type="clearLogo" url="/library/metadata/1655/clearLogo/1734319484" />
+<UltraBlurColors topLeft="1d341a" topRight="9f2564" bottomRight="376c37" bottomLeft="42592a" />
+<Genre tag="Animation" />
+<Genre tag="Comedy" />
+<Country tag="United States of America" />
+<Role tag="Seth MacFarlane" />
+<Role tag="Alex Borstein" />
+<Role tag="Seth Green" />
+</Directory>
+<Directory ratingKey="24739" key="/library/metadata/24739/children" guid="plex://show/5d9c084ae264b7001fc40514" slug="impractical-jokers" studio="NorthSouth Productions" type="show" title="Impractical Jokers" contentRating="TV-14" summary="This hidden-camera series follows four lifelong friends -- Brian &#34;Q&#34;&#39; Quinn, James &#34;Murr&#34;&#39; Murray, Joe Gatto and Sal Vulcano -- who take dares to an outrageous level. To find out who is best under pressure, the guys compete in awkward and outrageous hidden-camera hijinks with the loser performing what is deemed to be the most-mortifying challenge yet." index="1" audienceRating="7.9" viewCount="212" skipCount="3" lastViewedAt="1735089797" year="2011" tagline="They have to SAY it. They have to DO it. You have to SEE it." thumb="/library/metadata/24739/thumb/1735791604" art="/library/metadata/24739/art/1735791604" theme="/library/metadata/24739/theme/1735791604" duration="1800000" originallyAvailableAt="2011-12-15" leafCount="266" viewedLeafCount="183" childCount="12" seasonCount="11" addedAt="1727814257" updatedAt="1735791604" audienceRatingImage="themoviedb://image.rating" hasPremiumPrimaryExtra="1" primaryExtraKey="/library/metadata/24795">
+<Image alt="Impractical Jokers" type="coverPoster" url="/library/metadata/24739/thumb/1735791604" />
+<Image alt="Impractical Jokers" type="background" url="/library/metadata/24739/art/1735791604" />
+<Image alt="Impractical Jokers" type="clearLogo" url="/library/metadata/24739/clearLogo/1735791604" />
+<UltraBlurColors topLeft="1d3513" topRight="366c35" bottomRight="316635" bottomLeft="2f6d33" />
+<Genre tag="Comedy" />
+<Genre tag="Reality" />
+<Country tag="United States of America" />
+<Role tag="Brian Quinn" />
+<Role tag="James Murray" />
+<Role tag="Sal Vulcano" />
+</Directory>
+<Directory ratingKey="1998" key="/library/metadata/1998/children" guid="plex://show/5d9c08732192ba001f311648" slug="king-of-the-hill" studio="20th Century Fox Television" type="show" title="King of the Hill" contentRating="TV-14" summary="A middle-aged male who has trouble communicating with other people moves to a new home where everything is upside down. He does his best to fit in with everyone while trying to balance everything that is in his broken life. His family and friends try to stop him." index="1" audienceRating="7.3" viewCount="5661" skipCount="3" lastViewedAt="1734671038" year="1997" tagline="Looking for laughs as big as Texas? Head for the hills!" thumb="/library/metadata/1998/thumb/1734319485" art="/library/metadata/1998/art/1734319485" theme="/library/metadata/1998/theme/1734319485" duration="1320000" originallyAvailableAt="1997-01-12" leafCount="255" viewedLeafCount="255" childCount="13" addedAt="1596501710" updatedAt="1734319485" audienceRatingImage="themoviedb://image.rating">
+<Image alt="King of the Hill" type="coverPoster" url="/library/metadata/1998/thumb/1734319485" />
+<Image alt="King of the Hill" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="0c3243" topRight="7a3530" bottomRight="914332" bottomLeft="04703a" />
+<Genre tag="Animation" />
+<Genre tag="Drama" />
+<Country tag="United States of America" />
+<Role tag="Mike Judge" />
+<Role tag="Kathy Najimy" />
+<Role tag="Pamela Adlon" />
+</Directory>
+<Directory ratingKey="2338" key="/library/metadata/2338/children" guid="plex://show/5d9c081aba6eb9001fb9bf08" slug="robot-chicken" studio="Williams Street" type="show" title="Robot Chicken" contentRating="TV-MA" summary="A mad scientist finds a dead chicken in the road, and brings it back to life by turning it into half robot, half chicken. He tortures the robot chicken by showing a series of stop motion sketches of pop culture references, tv shows and movies, and real life celebrities." index="1" audienceRating="7.6" year="2001" tagline="Ba-Bawk-Bawk-Bawk" thumb="/library/metadata/2338/thumb/1734319485" art="/library/metadata/2338/art/1734319485" theme="/library/metadata/2338/theme/1734319485" duration="720000" originallyAvailableAt="2001-01-01" leafCount="188" viewedLeafCount="4" childCount="11" seasonCount="10" addedAt="1368549912" updatedAt="1734319485" audienceRatingImage="themoviedb://image.rating">
+<Image alt="Robot Chicken" type="coverPoster" url="/library/metadata/2338/thumb/1734319485" />
+<Image alt="Robot Chicken" type="background" url="/library/metadata/2338/art/1734319485" />
+<Image alt="Robot Chicken" type="clearLogo" url="/library/metadata/2338/clearLogo/1734319485" />
+<UltraBlurColors topLeft="062f51" topRight="a72528" bottomRight="063a61" bottomLeft="094f95" />
+<Genre tag="Animation" />
+<Genre tag="Comedy" />
+<Country tag="United States of America" />
+<Role tag="Seth Green" />
+<Role tag="Matthew Senreich" />
+<Role tag="Breckin Meyer" />
+</Directory>
+<Directory ratingKey="2511" key="/library/metadata/2511/children" guid="com.plexapp.agents.thetvdb://71663?lang=en" studio="Disney+" type="show" title="The Simpsons" titleSort="Simpsons" contentRating="TV-PG" summary="Set in Springfield, the average American town, the show focuses on the antics and everyday adventures of the Simpson family; Homer, Marge, Bart, Lisa and Maggie, as well as a virtual cast of thousands. Since the beginning, the series has been a pop culture icon, attracting hundreds of celebrities to guest star. The show has also made name for itself in its fearless satirical take on politics, media and American life in general." index="1" rating="8.9" viewCount="913" lastViewedAt="1735635213" year="1987" thumb="/library/metadata/2511/thumb/1605365005" art="/library/metadata/2511/art/1605365005" banner="/library/metadata/2511/banner/1605365005" theme="/library/metadata/2511/theme/1605365005" duration="1500000" originallyAvailableAt="1987-04-19" leafCount="504" viewedLeafCount="371" childCount="25" seasonCount="24" addedAt="1350198717" updatedAt="1605365005">
+<Image alt="The Simpsons" type="coverPoster" url="/library/metadata/2511/thumb/1605365005" />
+<Image alt="The Simpsons" type="background" url="/library/metadata/2511/art/1605365005" />
+<UltraBlurColors topLeft="193520" topRight="1d4833" bottomRight="993b2a" bottomLeft="1f4d5e" />
+<Genre tag="Animation" />
+<Genre tag="Comedy" />
+<Role tag="Dan Castellaneta" />
+<Role tag="Julie Kavner" />
+<Role tag="Nancy Cartwright" />
+</Directory>
+</MediaContainer>

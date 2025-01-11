@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaContainer size="6" allowSync="0" title1="Plex Library">
+<Directory allowSync="1" art="/:/resources/movie-fanart.jpg" composite="/library/sections/10/composite/1736024630" filters="1" refreshing="0" thumb="/:/resources/movie.png" key="10" type="movie" title="Drews Prestige Movie Corner &#127913;" agent="tv.plex.agents.movie" scanner="Plex Movie" language="en-US" uuid="f5e8288f-227a-4d3b-80b1-49ba23d12bec" updatedAt="1733332970" createdAt="1733332970" scannedAt="1736024630" content="1" directory="1" contentChangedAt="8398319" hidden="0">
+<Location id="19" path="/srv/nfs/prestige-films" />
+</Directory>
+<Directory allowSync="1" art="/:/resources/movie-fanart.jpg" composite="/library/sections/1/composite/1735943031" filters="1" refreshing="0" thumb="/:/resources/movie.png" key="1" type="movie" title="Movies" agent="tv.plex.agents.movie" scanner="Plex Movie" language="en-US" uuid="207f00ba-d708-43cc-8e49-578dc365dcc2" updatedAt="1728157345" createdAt="1596340961" scannedAt="1735943031" content="1" directory="1" contentChangedAt="7783616" hidden="0">
+<Location id="17" path="/srv/nfs/movies" />
+<Location id="1" path="/mnt/passport/movies" />
+</Directory>
+<Directory allowSync="1" art="/:/resources/movie-fanart.jpg" composite="/library/sections/5/composite/1735943031" filters="1" refreshing="0" thumb="/:/resources/movie.png" key="5" type="movie" title="Movies Pending Compression" agent="tv.plex.agents.movie" scanner="Plex Movie" language="en-US" uuid="652796bf-38ca-4547-bc66-3eebf30e1153" updatedAt="1654204364" createdAt="1598047925" scannedAt="1735943031" content="1" directory="1" contentChangedAt="8537769" hidden="0">
+<Location id="16" path="/srv/shortcuts/nzbget/movies" />
+</Directory>
+<Directory allowSync="1" art="/:/resources/show-fanart.jpg" composite="/library/sections/2/composite/1735943633" filters="1" refreshing="0" thumb="/:/resources/show.png" key="2" type="show" title="TV Shows" agent="tv.plex.agents.series" scanner="Plex TV Series" language="en-US" uuid="69a7e0d6-f1a2-463b-a360-baec8bc1a98c" updatedAt="1728163441" createdAt="1596341046" scannedAt="1735943633" content="1" directory="1" contentChangedAt="8529099" hidden="0">
+<Location id="18" path="/srv/nfs/tv" />
+<Location id="2" path="/mnt/passport/tv" />
+</Directory>
+<Directory allowSync="1" art="/:/resources/show-fanart.jpg" composite="/library/sections/6/composite/1735943633" filters="1" refreshing="0" thumb="/:/resources/show.png" key="6" type="show" title="TV Shows Pending Compression" agent="tv.plex.agents.series" scanner="Plex TV Series" language="en-US" uuid="73d68603-bd25-48d9-94e0-83c94938dc5b" updatedAt="1654204334" createdAt="1600028158" scannedAt="1735943633" content="1" directory="1" contentChangedAt="8537721" hidden="0">
+<Location id="15" path="/srv/shortcuts/nzbget/tv" />
+</Directory>
+<Directory allowSync="1" art="/:/resources/artist-fanart.jpg" composite="/library/sections/4/composite/1735943031" filters="1" refreshing="0" thumb="/:/resources/artist.png" key="4" type="artist" title="Music" agent="tv.plex.agents.music" scanner="Plex Music" language="en-US" uuid="f8a7b9be-2fd6-465d-8e85-b403aad04a7b" updatedAt="1603892166" createdAt="1596672098" scannedAt="1735943031" content="1" directory="1" contentChangedAt="2052505" hidden="0">
+<Location id="9" path="/var/lib/rancher/k3s/storage/pvc-6a870ac1-bfdf-4799-8f54-70db0ae5423d/music" />
+<Location id="7" path="/srv/nfs/k3s-storage" />
+</Directory>
+</MediaContainer>

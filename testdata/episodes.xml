@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaContainer size="12" allowSync="1" art="/library/metadata/1998/art/1734319485" grandparentContentRating="TV-14" grandparentRatingKey="1998" grandparentStudio="20th Century Fox Television" grandparentTheme="/library/metadata/1998/theme/1734319485" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentTitle="King of the Hill" identifier="com.plexapp.plugins.library" key="2210" librarySectionID="2" librarySectionTitle="TV Shows" librarySectionUUID="69a7e0d6-f1a2-463b-a360-baec8bc1a98c" mediaTagPrefix="/system/bundle/media/flags/" mediaTagVersion="1731522690" nocache="1" parentIndex="11" parentTitle="" theme="/library/metadata/1998/theme/1734319485" thumb="/library/metadata/2210/thumb/1660254306" title1="King of the Hill" title2="Season 11" viewGroup="episode">
+<Video ratingKey="2211" key="/library/metadata/2211" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f6060fe" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="The Peggy Horror Picture Show" titleSort="Peggy Horror Picture Show" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Feeling unfeminine after a clothing exchange party with the neighborhood girls, Hank offers Peggy a new pair of shoes. After finding that her usual place in Lubbock is out of business, she stumbles upon &#39;Clairissa&#39;s Closet&#39;, and a new best friend, Carolyn. They become the best of friends, until Peggy finds out that Carolyn is a he, and Carolyn finds that Peggy is a she." index="1" parentIndex="11" viewCount="28" lastViewedAt="1724575171" thumb="/library/metadata/2211/thumb/1660254306" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1334472" originallyAvailableAt="2007-01-28" addedAt="1455985668" updatedAt="1660254306">
+<Media id="21380" duration="1334472" bitrate="2676" width="1918" height="1080" aspectRatio="1.78" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="NTSC" videoProfile="high">
+<Part id="36780" key="/library/parts/36780/1733002264/file.mkv" duration="1334472" file="/srv/nfs/tv/King of the Hill/S11/S11E01.mkv" size="447150550" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="The Peggy Horror Picture Show" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="The Peggy Horror Picture Show" type="snapshot" url="/library/metadata/2211/thumb/1660254306" />
+<Image alt="The Peggy Horror Picture Show" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="22070b" topRight="050413" bottomRight="290b13" bottomLeft="832d62" />
+<Writer tag="Christy Stratton" />
+</Video>
+<Video ratingKey="2212" key="/library/metadata/2212" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f606116" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="SerPUNt" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="When Bobby&#39;s snakes gets into the toilet Hank decides to call Animal Control. But instead of taking care of the problem they make the city believe that the problem is worse than it is causing panic. Now it is up to Dale to save the city." index="2" parentIndex="11" viewCount="29" lastViewedAt="1731336531" thumb="/library/metadata/2212/thumb/1660254308" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1318255" originallyAvailableAt="2007-02-11" addedAt="1455985710" updatedAt="1660254308">
+<Media id="21381" duration="1318255" bitrate="1467" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36781" key="/library/parts/36781/1733860722/file.mkv" duration="1318255" file="/srv/nfs/tv/King of the Hill/S11/S11E02.mkv" size="242544307" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="SerPUNt" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="SerPUNt" type="snapshot" url="/library/metadata/2212/thumb/1660254308" />
+<Image alt="SerPUNt" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="123241" topRight="9e3708" bottomRight="8e4814" bottomLeft="2c667b" />
+<Director tag="Robin Brigstocke" />
+<Writer tag="Greg Cohen" />
+<Role tag="John Goodman" />
+<Role tag="Tom Petty" />
+<Role tag="Jason Konopisos" />
+</Video>
+<Video ratingKey="2213" key="/library/metadata/2213" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f606106" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Blood and Sauce" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="The guys discuss what they want to pass on to their children, Bill becomes despondent because he doesn&#8217;t have any. In an effort to cheer him up, they help Bill put together a Dauterive family reunion, only to be thwarted by the realization that Bill only has one living relative. Bill winds up sharing an incredible barbeque with his neighbors and teaches Bobby the secret sauce recipe." index="3" parentIndex="11" viewCount="21" lastViewedAt="1731325834" thumb="/library/metadata/2213/thumb/1660254308" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1319215" originallyAvailableAt="2007-02-18" addedAt="1455985748" updatedAt="1660254308">
+<Media id="21382" duration="1319215" bitrate="1539" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36782" key="/library/parts/36782/1733861483/file.mkv" duration="1319215" file="/srv/nfs/tv/King of the Hill/S11/S11E03.mkv" size="254553460" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Blood and Sauce" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Blood and Sauce" type="snapshot" url="/library/metadata/2213/thumb/1660254308" />
+<Image alt="Blood and Sauce" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="462312" topRight="29270c" bottomRight="1f211c" bottomLeft="7a4f28" />
+<Director tag="Tricia Garcia" />
+<Role tag="David Herman" />
+</Video>
+<Video ratingKey="2214" key="/library/metadata/2214" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c602391c001f60611a" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Luanne Gets Lucky" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="When Lucky ditches Luanne to go stumping with Hank and the gang, Luanne accepts an invitation to attend Arlen High School&#39;s Senior Prom. Lucky&#39;s friends Mud Dobber and Elvin take it upon themeselves bully Luanne&#39;s 15-year-old date." index="4" parentIndex="11" viewCount="20" lastViewedAt="1723144786" thumb="/library/metadata/2214/thumb/1660254309" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1316111" originallyAvailableAt="2007-03-25" addedAt="1455985779" updatedAt="1660254309">
+<Media id="21383" duration="1316111" bitrate="1554" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36783" key="/library/parts/36783/1733862212/file.mkv" duration="1316111" file="/srv/nfs/tv/King of the Hill/S11/S11E04.mkv" size="256366651" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Luanne Gets Lucky" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Luanne Gets Lucky" type="snapshot" url="/library/metadata/2214/thumb/1660254309" />
+<Image alt="Luanne Gets Lucky" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="28282d" topRight="1c4234" bottomRight="4e2317" bottomLeft="453f40" />
+<Role tag="Jack De Sena" />
+<Role tag="Andrea Bowen" />
+<Role tag="Tom Petty" />
+</Video>
+<Video ratingKey="2215" key="/library/metadata/2215" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f60610a" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Hank Gets Dusted" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Hank is crestfallen when Cotton gives his beloved Cadillac to Cousin Dusty, however things get even worse when Dusty shows up at Hank&#39;s house with a reality TV show crew." index="5" parentIndex="11" viewCount="16" lastViewedAt="1731416007" thumb="/library/metadata/2215/thumb/1660254309" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1318679" originallyAvailableAt="2007-04-01" addedAt="1455985820" updatedAt="1660254309">
+<Media id="21384" duration="1318679" bitrate="1593" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36784" key="/library/parts/36784/1733863002/file.mkv" duration="1318679" file="/srv/nfs/tv/King of the Hill/S11/S11E05.mkv" size="263326599" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Hank Gets Dusted" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Hank Gets Dusted" type="snapshot" url="/library/metadata/2215/thumb/1660254309" />
+<Image alt="Hank Gets Dusted" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="272f32" topRight="85306f" bottomRight="204d63" bottomLeft="1e2429" />
+<Writer tag="Kit Boss" />
+<Role tag="Will Arnett" />
+<Role tag="Billy Gibbons" />
+</Video>
+<Video ratingKey="2216" key="/library/metadata/2216" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f606102" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Glen Peggy Glen Ross" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Peggy loses her job at The Arlen Bystander and begins a new career as a real estate agent. Meanwhile, after Dale buys a set of titanium golf clubs at a police auction, he gives the clubs to Hank.  However, Hank has trouble playing with a set of clubs that once belonged to a convicted murderer." index="6" parentIndex="11" viewCount="21" lastViewedAt="1722160666" thumb="/library/metadata/2216/thumb/1660254310" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1320408" originallyAvailableAt="2007-04-22" addedAt="1455985859" updatedAt="1660254310">
+<Media id="21385" duration="1320408" bitrate="1452" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36785" key="/library/parts/36785/1733863705/file.mkv" duration="1320408" file="/srv/nfs/tv/King of the Hill/S11/S11E06.mkv" size="240388098" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Glen Peggy Glen Ross" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Glen Peggy Glen Ross" type="snapshot" url="/library/metadata/2216/thumb/1660254310" />
+<Image alt="Glen Peggy Glen Ross" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="253315" topRight="2b6771" bottomRight="2b1305" bottomLeft="233014" />
+<Role tag="Chris Elliott" />
+</Video>
+<Video ratingKey="2217" key="/library/metadata/2217" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f606112" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="The Passion of Dauterive" titleSort="Passion of Dauterive" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="After Bill survives a roof cave-in over his bed he has a religious experience which involves a romantic liaison with Reverend Stroup." index="7" parentIndex="11" viewCount="30" lastViewedAt="1734576785" thumb="/library/metadata/2217/thumb/1660254310" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1322385" originallyAvailableAt="2007-04-29" addedAt="1455985899" updatedAt="1660254310">
+<Media id="21386" duration="1322385" bitrate="1410" width="1440" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36786" key="/library/parts/36786/1733864424/file.mkv" duration="1322385" file="/srv/nfs/tv/King of the Hill/S11/S11E07.mkv" size="233773341" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="The Passion of Dauterive" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="The Passion of Dauterive" type="snapshot" url="/library/metadata/2217/thumb/1660254310" />
+<Image alt="The Passion of Dauterive" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="432611" topRight="734624" bottomRight="713574" bottomLeft="406333" />
+<Director tag="Anthony Chun" />
+<Role tag="Scott Klace" />
+</Video>
+<Video ratingKey="2218" key="/library/metadata/2218" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f6060fa" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Grand Theft Arlen" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Hank becomes obsessed with a video game about propane.  Meanwhile, Bobby trains for the Presidential Fitness Test." index="8" parentIndex="11" viewCount="23" lastViewedAt="1731327165" thumb="/library/metadata/2218/thumb/1660254311" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1324391" originallyAvailableAt="2007-04-29" addedAt="1455985937" updatedAt="1660254311">
+<Media id="21387" duration="1324391" bitrate="1441" width="1440" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36787" key="/library/parts/36787/1733865150/file.mkv" duration="1324391" file="/srv/nfs/tv/King of the Hill/S11/S11E08.mkv" size="239258906" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Grand Theft Arlen" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Grand Theft Arlen" type="snapshot" url="/library/metadata/2218/thumb/1660254311" />
+<Image alt="Grand Theft Arlen" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="193617" topRight="351104" bottomRight="23575e" bottomLeft="844e2b" />
+<Role tag="Breckin Meyer" />
+<Role tag="Phil LaMarr" />
+<Role tag="Toby Huss" />
+</Video>
+<Video ratingKey="2219" key="/library/metadata/2219" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f60610e" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Peggy&#8217;s Gone to Pots" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Peggy tries to reach the pinnacle of real estate success by selling houses in the exclusive neighborhood of Arlen Heights, but she winds up selling pots door to door. Meanwhile the real Rusty Shackleford pays a visit to Dale." index="9" parentIndex="11" viewCount="24" lastViewedAt="1729022231" thumb="/library/metadata/2219/thumb/1660254311" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1322472" originallyAvailableAt="2007-05-06" addedAt="1455985973" updatedAt="1660254311">
+<Media id="21388" duration="1322472" bitrate="1309" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36788" key="/library/parts/36788/1733865827/file.mkv" duration="1322472" file="/srv/nfs/tv/King of the Hill/S11/S11E09.mkv" size="217153578" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Peggy&#8217;s Gone to Pots" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Peggy&#8217;s Gone to Pots" type="snapshot" url="/library/metadata/2219/thumb/1660254311" />
+<Image alt="Peggy&#8217;s Gone to Pots" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="242b0c" topRight="0c1b04" bottomRight="2f2203" bottomLeft="6a4f24" />
+</Video>
+<Video ratingKey="2220" key="/library/metadata/2220" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c502391c001f6060f6" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Hair Today, Gone Today" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Nancy turns to her mother for help when the stress of home life and unresolved feelings for Redcorn cause her hair to fall out." index="10" parentIndex="11" viewCount="21" lastViewedAt="1722140507" thumb="/library/metadata/2220/thumb/1660254311" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1323528" originallyAvailableAt="2007-05-13" addedAt="1455986011" updatedAt="1660254311">
+<Media id="21389" duration="1323528" bitrate="1486" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36789" key="/library/parts/36789/1733866528/file.mkv" duration="1323528" file="/srv/nfs/tv/King of the Hill/S11/S11E10.mkv" size="246657086" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Hair Today, Gone Today" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Hair Today, Gone Today" type="snapshot" url="/library/metadata/2220/thumb/1660254311" />
+<Image alt="Hair Today, Gone Today" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="3f1d49" topRight="6d2c2f" bottomRight="2d100b" bottomLeft="763d87" />
+<Role tag="Rue McClanahan" />
+<Role tag="James Sie" />
+</Video>
+<Video ratingKey="2221" key="/library/metadata/2221" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c6ec357c001f9d5510" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Bill, Bulk and the Body Buddies" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Bill has to shape up for an upcoming Army physical, but when he becomes friends with a group of body builders he becomes aggressive and develops a bad attitude.  Hank and the gang have to come to the rescue." index="11" parentIndex="11" viewCount="13" lastViewedAt="1729073006" thumb="/library/metadata/2221/thumb/1660254312" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1315320" originallyAvailableAt="2007-05-20" addedAt="1455986055" updatedAt="1660254312">
+<Media id="21390" duration="1315320" bitrate="2034" width="1456" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36790" key="/library/parts/36790/1733867450/file.mkv" duration="1315320" file="/srv/nfs/tv/King of the Hill/S11/S11E11.mkv" size="335170640" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Bill, Bulk and the Body Buddies" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Bill, Bulk and the Body Buddies" type="snapshot" url="/library/metadata/2221/thumb/1660254312" />
+<Image alt="Bill, Bulk and the Body Buddies" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="462311" topRight="632d13" bottomRight="5e2623" bottomLeft="753131" />
+<Director tag="Tricia Garcia" />
+<Role tag="Randy Poffo" />
+<Role tag="Diedrich Bader" />
+<Role tag="James Sie" />
+</Video>
+<Video ratingKey="2222" key="/library/metadata/2222" parentRatingKey="2210" grandparentRatingKey="1998" guid="plex://episode/5d9c13c6170e24001f2d4aca" parentGuid="plex://season/602e69940f4bde002da3da70" grandparentGuid="plex://show/5d9c08732192ba001f311648" grandparentSlug="king-of-the-hill" type="episode" title="Lucky&#39;s Wedding Suit" grandparentKey="/library/metadata/1998" parentKey="/library/metadata/2210" grandparentTitle="King of the Hill" parentTitle="Season 11" contentRating="TV-PG" summary="Season finale. When Lucky wants to give Luanne the expensive wedding that she desires, he sues Dale with a frivolous lawsuit after having an accident on the job.  After Lucky&#39;s lawyer finds out that Dale does not have insurance, he goes after Strickland Propane." index="12" parentIndex="11" viewCount="24" lastViewedAt="1731349286" thumb="/library/metadata/2222/thumb/1660254312" art="/library/metadata/1998/art/1734319485" parentThumb="/library/metadata/2210/thumb/1660254306" grandparentThumb="/library/metadata/1998/thumb/1734319485" grandparentArt="/library/metadata/1998/art/1734319485" grandparentTheme="/library/metadata/1998/theme/1734319485" duration="1321103" originallyAvailableAt="2007-05-20" addedAt="1455986109" updatedAt="1660254312">
+<Media id="21391" duration="1321103" bitrate="1527" width="1438" height="1080" aspectRatio="1.33" audioChannels="2" audioCodec="mp3" videoCodec="h264" videoResolution="1080" container="mkv" videoFrameRate="24p" videoProfile="high">
+<Part id="36791" key="/library/parts/36791/1733868160/file.mkv" duration="1321103" file="/srv/nfs/tv/King of the Hill/S11/S11E12.mkv" size="252959329" container="mkv" videoProfile="high" />
+</Media>
+<Image alt="Lucky&#39;s Wedding Suit" type="coverPoster" url="/library/metadata/2210/thumb/1660254306" />
+<Image alt="Lucky&#39;s Wedding Suit" type="snapshot" url="/library/metadata/2222/thumb/1660254312" />
+<Image alt="Lucky&#39;s Wedding Suit" type="background" url="/library/metadata/1998/art/1734319485" />
+<UltraBlurColors topLeft="162e4f" topRight="774416" bottomRight="0d020e" bottomLeft="7b323c" />
+<Role tag="Tom Petty" />
+</Video>
+</MediaContainer>

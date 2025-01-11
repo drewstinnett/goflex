@@ -9,7 +9,7 @@ var markWatchedCmd = &cobra.Command{
 	Use:   "mark-watched SHOW SEASON EPISODE",
 	Short: "markWatched something from the plex server",
 	Args:  cobra.ExactArgs(3),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		p := newPlex()
 		_ = p
 		return nil

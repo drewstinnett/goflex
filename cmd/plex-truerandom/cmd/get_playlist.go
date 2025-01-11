@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"log/slog"
-
 	"github.com/drewstinnett/gout/v2"
+	plexrando "github.com/drewstinnett/plex-truerandom"
 	"github.com/spf13/cobra"
 )
 
@@ -14,31 +13,39 @@ var getPlaylistCmd = &cobra.Command{
 	RunE: func(_ *cobra.Command, args []string) error {
 		p := newPlex()
 
-		pl, err := p.Playlist(args[0])
-		if err != nil {
-			return err
+		if len(args) == 0 {
+			ret, err := p.Playlists.List()
+			if err != nil {
+				return err
+			}
+			return gout.Print(ret)
 		}
-		episodes, err := pl.Episodes()
-		if err != nil {
-			return err
+		ret := make([]*plexrando.Playlist, len(args))
+		for idx, item := range args {
+			got, err := p.Playlists.GetWithName(item)
+			if err != nil {
+				return err
+			}
+			ret[idx] = got
 		}
-		gout.MustPrint(episodes)
-		slog.Info("completed", "episodes", len(episodes))
+		gout.MustPrint(ret)
+
+		/*
+			pl, err := p.Playlist(args[0])
+			if err != nil {
+				return err
+			}
+			episodes, err := pl.Episodes()
+			if err != nil {
+				return err
+			}
+			gout.MustPrint(episodes)
+			slog.Info("completed", "episodes", len(episodes))
+		*/
 		return nil
 	},
 }
 
 func init() {
 	getCmd.AddCommand(getPlaylistCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	getPlaylistCmd.PersistentFlags().String("library", "TV Shows", "Library of the TV Show we are randomizing")
-	getPlaylistCmd.PersistentFlags().String("title", "American Dad!", "Name of the show to include in this playlist")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getPlaylistCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

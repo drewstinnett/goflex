@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaContainer size="7">
+<Playlist ratingKey="26743" key="/playlists/26743/items" guid="com.plexapp.agents.none://2e8a588e-da8e-4627-b950-0d2fd4a445b8" type="playlist" title="American Dad! (Randomized)" summary="" smart="0" playlistType="video" composite="/playlists/26743/composite/1736484066" viewCount="13" lastViewedAt="1736472528" duration="118397000" leafCount="92" addedAt="1734385266" updatedAt="1736484066">
+</Playlist>
+<Playlist ratingKey="26745" key="/playlists/26745/items" guid="com.plexapp.agents.none://cf5f67af-d89e-4dd7-8946-4f9b35d3eea9" type="playlist" title="Family Guy (Randomized)" summary="" smart="0" playlistType="video" composite="/playlists/26745/composite/1735536264" viewCount="3" lastViewedAt="1735521620" duration="105103000" leafCount="77" addedAt="1734391976" updatedAt="1735536264">
+</Playlist>
+<Playlist ratingKey="26755" key="/playlists/26755/items" guid="com.plexapp.agents.none://a32f019b-f55a-4e97-8ef6-695258f933fa" type="playlist" title="Impractical Jokers (Randomized)" summary="" smart="0" playlistType="video" composite="/playlists/26755/composite/1736025648" viewCount="9" lastViewedAt="1736470863" duration="160651000" leafCount="119" addedAt="1734397588" updatedAt="1736025648">
+</Playlist>
+<Playlist ratingKey="26746" key="/playlists/26746/items" guid="com.plexapp.agents.none://19e0317a-5891-4020-87c9-1477da6cc185" type="playlist" title="King of the Hill (Randomized)" summary="" smart="0" playlistType="video" composite="/playlists/26746/composite/1734674114" viewCount="3" lastViewedAt="1734659144" duration="300831000" leafCount="225" addedAt="1734392179" updatedAt="1734674114">
+</Playlist>
+<Playlist ratingKey="13985" key="/playlists/13985/items" guid="com.plexapp.agents.none://3eadf625-b615-45a7-bc62-04db185f2316" type="playlist" title="Rick and Morty" summary="" smart="0" playlistType="video" composite="/playlists/13985/composite/1728221662" viewCount="16" lastViewedAt="1678411597" duration="128194000" leafCount="188" addedAt="1622073579" updatedAt="1728221662">
+</Playlist>
+<Playlist ratingKey="26798" key="/playlists/26798/items" guid="com.plexapp.agents.none://64eae9dc-65fc-4b9c-bd32-0511c323d351" type="playlist" title="The Simpsons" titleSort="Simpsons" summary="" smart="0" playlistType="video" composite="/playlists/26798/composite/1734695467" viewCount="1" lastViewedAt="1734695467" duration="665539000" leafCount="504" addedAt="1734695467" updatedAt="1734695467">
+</Playlist>
+<Playlist ratingKey="26971" key="/playlists/26971/items" guid="com.plexapp.agents.none://80c5e2b9-7586-4664-8490-4e4984de0479" type="playlist" title="test-playlist" summary="" smart="0" playlistType="video" composite="/playlists/26971/composite/1735220935" viewCount="2" lastViewedAt="1735050092" duration="542519000" leafCount="403" addedAt="1735048105" updatedAt="1735220935">
+</Playlist>
+</MediaContainer>

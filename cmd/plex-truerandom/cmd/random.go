@@ -17,6 +17,7 @@ var randomCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
+		// Inspect the playlist, create it if it doesn't exist
 		playlist, created, err := p.GetOrCreatePlaylist(args[0])
 		if err != nil {
 			return err
@@ -28,7 +29,7 @@ var randomCmd = &cobra.Command{
 			refillPlaylist = true
 		} else {
 			var err error
-			playlistEpisodes, err = playlist.Episodes()
+			playlistEpisodes, err = playlist.EpisodesDeprecated()
 			if err != nil {
 				return err
 			}
