@@ -3,9 +3,10 @@ package plexrando
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
+	"time"
 )
 
 // Show represents a TV show in plex
@@ -24,13 +25,37 @@ type Season struct {
 	p            *Plex
 }
 
+// ShowList represents multiple shows
+type ShowList []*Show
+
+// Episodes returns episodes in a show list
+func (s *ShowList) Episodes() (EpisodeList, error) {
+	ret := EpisodeList{}
+	for _, show := range *s {
+		seasons, err := show.Seasons()
+		if err != nil {
+			return nil, err
+		}
+		for _, season := range seasons {
+			episodes, err := season.Episodes()
+			if err != nil {
+				return nil, err
+			}
+			for _, episode := range episodes {
+				ret = append(ret, *episode)
+			}
+		}
+	}
+	return ret, nil
+}
+
 // MatchShows returns a list of shows that match a given name exactly
-func (p *Plex) MatchShows(name string) ([]*Show, error) {
+func (p *Plex) MatchShows(name string) (ShowList, error) {
 	libs, err := p.Libraries()
 	if err != nil {
 		return nil, err
 	}
-	ret := []*Show{}
+	ret := ShowList{}
 	for _, lib := range libs {
 		if lib.Type != ShowType {
 			continue
@@ -70,7 +95,6 @@ func (s *Season) updateEpisodeCache() error {
 	s.episodeCache = map[int]*Episode{}
 	for _, item := range er.Video {
 		if item.RatingKey == "" {
-			slog.Debug("skipping", "reason", "no rating key", "item", item)
 			continue
 		}
 		id, err := strconv.Atoi(item.RatingKey)
@@ -105,7 +129,6 @@ func (s *Show) updateSeasonCache() error {
 	s.seasonCache = map[int]*Season{}
 	for _, item := range sr.Directory {
 		if item.RatingKey == "" {
-			slog.Debug("skipping", "reason", "no rating key", "item", item)
 			continue
 		}
 		id, err := strconv.Atoi(item.RatingKey)
@@ -170,4 +193,91 @@ func (l *Library) updateShowCache() error {
 		}
 	}
 	return nil
+}
+
+func (p *Plex) episodeID(show string, season, episode int) (int, error) {
+	shows, err := p.MatchShows(show)
+	if err != nil {
+		return 0, err
+	}
+	episodes, err := shows.Episodes()
+	if err != nil {
+		return 0, err
+	}
+	for _, item := range episodes {
+		if (item.Season == season) && (item.Episode == episode) {
+			return item.ID, nil
+		}
+	}
+	return 0, errors.New("episode key not found")
+}
+
+// EpisodeList is multiple Episodes
+type EpisodeList []Episode
+
+// Runtime returns the total runtime of all episodes
+func (l EpisodeList) Runtime() time.Duration {
+	return 0
+}
+
+// Seasons returns episodes matching a season start and stop
+func (l EpisodeList) Seasons(start, end int) EpisodeList {
+	ret := EpisodeList{}
+	// If no start/end specified, return everything
+	if (start == 0) && (end == 0) {
+		return l
+	}
+	for _, ep := range l {
+		switch {
+		// If we just have a start
+		case ((start > 0) && (end == 0)) && (ep.Season >= start):
+			ret = append(ret, ep)
+		// If we just have an end
+		case ((end > 0) && (start == 0)) && (ep.Season <= end):
+			ret = append(ret, ep)
+		// If we have a start and and end
+		case (ep.Season >= start) && (ep.Season <= end):
+			ret = append(ret, ep)
+		}
+	}
+	return ret
+}
+
+// Subtract removes items from a list. Returns the edited list, and a list of episodes that were removed
+func (l *EpisodeList) Subtract(s EpisodeList) (EpisodeList, EpisodeList) {
+	r := EpisodeList{}
+	removed := EpisodeList{}
+	ids := s.ids()
+	for _, item := range *l {
+		if !slices.Contains(ids, item.ID) {
+			r = append(r, item)
+		} else {
+			removed = append(removed, item)
+		}
+	}
+	return r, removed
+}
+
+// ids returns a list of ids for the episodes
+func (l EpisodeList) ids() []int {
+	ret := make([]int, len(l))
+	for idx, item := range l {
+		ret[idx] = item.ID
+	}
+	return ret
+}
+
+// String fulfills the Stringer interface
+func (e Episode) String() string {
+	var ret string
+	switch {
+	case e.Show == "":
+		ret = fmt.Sprintf("%v - %v", e.ID, e.Title)
+	default:
+		ret = fmt.Sprintf("%v - S%02dE%02d - %v", e.Show, e.Season, e.Episode, e.Title)
+	}
+	if e.Watched != nil {
+		ret = fmt.Sprintf("%v (Watched: %v)", ret, e.Watched.Format("2006-01-02 15:04"))
+	}
+	return ret
 }

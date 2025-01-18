@@ -22,8 +22,8 @@ var getPlaylistEpisodesCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		for _, item := range episodes {
-			fmt.Println(item.String())
+		for idx, item := range episodes {
+			fmt.Printf("%-3d: %v\n", idx+1, item.String())
 		}
 		return nil
 	},

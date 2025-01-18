@@ -45,3 +45,7 @@ func panicIfErr(err error) {
 		panic(err)
 	}
 }
+
+func toPTR[V any](v V) *V {
+	return &v
+}

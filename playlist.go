@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,7 +28,11 @@ type PlaylistService interface {
 	GetWithName(string) (*Playlist, error)
 	Create(string, PlaylistType, bool) error
 	GetOrCreate(string, PlaylistType, bool) (*Playlist, bool, error)
+	Delete(int) error
+	DeleteEpisode(string, string, int, int) error
 	Exists(string) bool
+	Clear(int) error
+	InsertEpisodes(int, EpisodeList) error
 }
 
 // PlaylistServiceOp is the operator for the PlaylistService
@@ -36,21 +41,74 @@ type PlaylistServiceOp struct {
 	p     *Plex
 }
 
+// InsertEpisodes inserts an episode in to a playlist
+func (svc *PlaylistServiceOp) InsertEpisodes(playlistID int, episodes EpisodeList) error {
+	if len(episodes) == 0 {
+		return nil
+	}
+	ids := make([]string, len(episodes))
+	for idx, item := range episodes {
+		ids[idx] = fmt.Sprint(item.ID)
+	}
+	machineID, err := svc.p.Server.MachineID()
+	if err != nil {
+		return err
+	}
+	var ret struct{}
+	if err := svc.p.sendRequest(mustNewRequest("PUT",
+		fmt.Sprintf("%v/playlists/%v/items?uri=%v",
+			svc.p.baseURL,
+			playlistID,
+			fmt.Sprintf("server://%v/com.plexapp.plugins.library/library/metadata/%v", machineID, strings.Join(ids, ",")),
+			// episode.URI(),
+		)),
+		&ret); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Clear removes all items from a playlist
+func (svc *PlaylistServiceOp) Clear(id int) error {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%v/playlists/%v/items", svc.p.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	var res struct{}
+	if err := svc.p.sendRequest(req, &res); err != nil {
+		return err
+	}
+	return svc.updateCache()
+}
+
+// Delete deletees a playlist
+func (svc *PlaylistServiceOp) Delete(id int) error {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%v/playlists/%v", svc.p.baseURL, id), nil)
+	if err != nil {
+		return err
+	}
+	var res struct{}
+	if err := svc.p.sendRequest(req, &res); err != nil {
+		return err
+	}
+	return svc.updateCache()
+}
+
 // GetOrCreate returns a playlist with the given title, or creates a new one with given kind and smart options
-func (p *PlaylistServiceOp) GetOrCreate(title string, kind PlaylistType, smart bool) (*Playlist, bool, error) {
-	if p.cache == nil {
-		if err := p.updateCache(); err != nil {
+func (svc *PlaylistServiceOp) GetOrCreate(title string, kind PlaylistType, smart bool) (*Playlist, bool, error) {
+	if svc.cache == nil {
+		if err := svc.updateCache(); err != nil {
 			return nil, false, err
 		}
 	}
 	var created bool
-	if !p.Exists(title) {
-		if err := p.Create(title, kind, smart); err != nil {
+	if !svc.Exists(title) {
+		if err := svc.Create(title, kind, smart); err != nil {
 			return nil, false, err
 		}
 		created = true
 	}
-	got, err := p.GetWithName(title)
+	got, err := svc.GetWithName(title)
 	if err != nil {
 		return nil, created, err
 	}
@@ -58,74 +116,72 @@ func (p *PlaylistServiceOp) GetOrCreate(title string, kind PlaylistType, smart b
 }
 
 // Exists returns true if a playlist already exists
-func (p *PlaylistServiceOp) Exists(n string) bool {
-	if p.cache == nil {
-		if err := p.updateCache(); err != nil {
+func (svc *PlaylistServiceOp) Exists(n string) bool {
+	if svc.cache == nil {
+		if err := svc.updateCache(); err != nil {
 			panic(err)
 		}
 	}
-	_, ok := p.cache[n]
+	_, ok := svc.cache[n]
 	return ok
 }
 
 // Create creates a new playlist
-func (p *PlaylistServiceOp) Create(title string, kind PlaylistType, smart bool) error {
-	if p.Exists(title) {
+func (svc *PlaylistServiceOp) Create(title string, kind PlaylistType, smart bool) error {
+	if svc.Exists(title) {
 		return errors.New("playlist with title already exists: " + title)
 	}
 	smartInt := 0
 	if smart {
 		smartInt = 1
 	}
-	req, err := http.NewRequest("POST",
-		fmt.Sprintf(
-			"%v/playlists?type=%v&title=%v&smart=%v&uri=server://%v/com.plexapp.plugins.library/", p.p.baseURL, kind, url.QueryEscape(title), smartInt, p.p.serverID),
-		nil)
+	machineID, err := svc.p.Server.MachineID()
 	if err != nil {
 		return err
 	}
+	req := mustNewRequest("POST", fmt.Sprintf("%v/playlists?type=%v&title=%v&smart=%v&uri=server://%v/com.plexapp.plugins.library/", svc.p.baseURL, kind, url.QueryEscape(title), smartInt, machineID))
 	var res CreatePlaylistResponse
-	if err := p.p.sendRequest(req, &res); err != nil {
+	if err := svc.p.sendRequest(req, &res); err != nil {
 		return err
 	}
-	return p.updateCache()
+	return svc.updateCache()
 }
 
 // List lists out playlists on a plex server
-func (p *PlaylistServiceOp) List() (map[string]*Playlist, error) {
-	if p.cache == nil {
-		if err := p.updateCache(); err != nil {
+func (svc *PlaylistServiceOp) List() (map[string]*Playlist, error) {
+	if svc.cache == nil {
+		if err := svc.updateCache(); err != nil {
 			return nil, err
 		}
 	}
-	return p.cache, nil
+	return svc.cache, nil
 }
 
 // GetWithName returns a playlist by name
-func (p *PlaylistServiceOp) GetWithName(n string) (*Playlist, error) {
-	if p.cache == nil {
-		if err := p.updateCache(); err != nil {
+func (svc *PlaylistServiceOp) GetWithName(n string) (*Playlist, error) {
+	if svc.cache == nil {
+		if err := svc.updateCache(); err != nil {
 			return nil, err
 		}
 	}
-	got, ok := p.cache[n]
+	got, ok := svc.cache[n]
 	if !ok {
 		return nil, errors.New("playlist not found with name: " + n)
 	}
 	return got, nil
 }
 
-func (p *PlaylistServiceOp) updateCache() error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/playlists", p.p.baseURL), nil)
+func (svc *PlaylistServiceOp) updateCache() error {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%v/playlists", svc.p.baseURL), nil)
 	if err != nil {
 		return err
 	}
 	var pr PlaylistsResponse
-	if err := p.p.sendRequest(req, &pr); err != nil {
+	if err := svc.p.sendRequest(req, &pr); err != nil {
 		return err
 	}
 
-	p.cache = map[string]*Playlist{}
+	svc.cache = map[string]*Playlist{}
 	for _, item := range pr.Playlist {
 		id, err := strconv.Atoi(item.RatingKey)
 		if err != nil {
@@ -138,12 +194,12 @@ func (p *PlaylistServiceOp) updateCache() error {
 				return err
 			}
 		}
-		p.cache[item.Title] = &Playlist{
+		svc.cache[item.Title] = &Playlist{
 			ID:       id,
 			Title:    item.Title,
 			GUID:     item.GUID,
 			Duration: time.Duration(second) * time.Second,
-			p:        p.p,
+			p:        svc.p,
 		}
 	}
 	return nil
@@ -192,55 +248,14 @@ func (l *Playlist) Episodes() (EpisodeList, error) {
 				return nil, err
 			}
 		}
+		playlistID, err := strconv.Atoi(item.PlaylistItemID)
+		if err != nil {
+			return nil, err
+		}
 		viewed := time.Unix(viewedInt, 0)
 		ret = append(ret, Episode{
 			ID:             id,
-			PlaylistItemID: item.PlaylistItemID,
-			Title:          item.Title,
-			Show:           item.GrandparentTitle,
-			Season:         parentI,
-			Episode:        index,
-			Watched:        &viewed,
-			p:              l.p,
-		})
-	}
-
-	return ret, nil
-}
-
-// EpisodesDeprecated returns a new playlist by the name
-func (l *Playlist) EpisodesDeprecated() (EpisodeList, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/playlists/%v/items", l.p.baseURL, l.IDDeprecated), nil)
-	if err != nil {
-		return nil, err
-	}
-	var plr PlaylistResponse
-	if err := l.p.sendRequest(req, &plr); err != nil {
-		return nil, err
-	}
-	ret := EpisodeList{}
-	for _, item := range plr.Video {
-		parentI, err := strconv.Atoi(item.ParentIndex)
-		if err != nil {
-			return nil, err
-		}
-		index, err := strconv.Atoi(item.Index)
-		if err != nil {
-			return nil, err
-		}
-
-		var viewedInt int64
-		if item.LastViewedAt != "" {
-			var err error
-			viewedInt, err = strconv.ParseInt(item.LastViewedAt, 10, 64)
-			if err != nil {
-				return nil, err
-			}
-		}
-		viewed := time.Unix(viewedInt, 0)
-		ret = append(ret, Episode{
-			DeprecatedID:   item.RatingKey,
-			PlaylistItemID: item.PlaylistItemID,
+			PlaylistItemID: playlistID,
 			Title:          item.Title,
 			Show:           item.GrandparentTitle,
 			Season:         parentI,
@@ -254,62 +269,86 @@ func (l *Playlist) EpisodesDeprecated() (EpisodeList, error) {
 }
 
 // DeleteItem removes an item from the given playlist
-func (l *Playlist) DeleteItem(keys ...string) error {
+func (svc *PlaylistServiceOp) DeleteItem(id int, keys ...int) error {
 	for _, k := range keys {
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%v/playlists/%v/items/%v", l.p.baseURL, l.IDDeprecated, k), nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%v/playlists/%v/items/%v", svc.p.baseURL, id, k), nil)
 		if err != nil {
 			return err
 		}
 		var got struct{}
-		if err := l.p.sendRequest(req, &got); err != nil {
+		if err := svc.p.sendRequest(req, &got); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// EpisodeKey returns the key of an episode, based on the title, season and episode
-func (l *Playlist) EpisodeKey(title string, season, episode int) (string, error) {
+// episodeKey returns the key of an episode, based on the title, season and episode
+func (l *Playlist) episodeKey(title string, season, episode int) (int, error) {
 	if l.episodeCache == nil {
-		episodes, err := l.EpisodesDeprecated()
+		episodes, err := l.Episodes()
 		if err != nil {
-			return "", nil
+			return 0, nil
 		}
 		l.updateEpisodeCache(&episodes)
 	}
 	if _, ok := l.episodeCache[title]; !ok {
-		return "", fmt.Errorf("show not found in episode cache: %v", title)
+		return 0, fmt.Errorf("show not found in episode cache: %v", title)
 	}
 	if _, ok := l.episodeCache[title][season]; !ok {
-		return "", fmt.Errorf("season not found in episode cache: %v: s%02d", title, season)
+		return 0, fmt.Errorf("season not found in episode cache: %v: s%02d", title, season)
 	}
 	key, ok := l.episodeCache[title][season][episode]
 	if !ok {
-		return "", fmt.Errorf("episode not found in episode cache: %v s%02de%02d", title, season, episode)
+		return 0, fmt.Errorf("episode not found in episode cache: %v s%02de%02d", title, season, episode)
 	}
 	return key, nil
 }
 
+func (svc *PlaylistServiceOp) playlistEpisodeID(playlist, show string, season, episode int) (int, error) {
+	if playlist == "" {
+		return 0, errors.New("must specify the playlist name")
+	}
+	playlistI, err := svc.GetWithName(playlist)
+	if err != nil {
+		return 0, err
+	}
+	episodes, err := playlistI.Episodes()
+	if err != nil {
+		return 0, err
+	}
+	for _, episodeI := range episodes {
+		if (show == episodeI.Show) && (season != episodeI.Season) && (episode != episodeI.Episode) {
+			return episodeI.PlaylistItemID, nil
+		}
+	}
+	return 0, errors.New("episode now found")
+}
+
 // DeleteEpisode removes an item by title, season number,  episode number
-func (l *Playlist) DeleteEpisode(show string, season, episode int) error {
+func (svc *PlaylistServiceOp) DeleteEpisode(playlist, show string, season, episode int) error {
 	if show == "" {
 		return errors.New("cannot delete episode with empty show")
 	}
-	k, err := l.EpisodeKey(show, season, episode)
+	k, err := svc.playlistEpisodeID(playlist, show, season, episode)
 	if err != nil {
 		return err
 	}
-	return l.DeleteItem(k)
+	pl, err := svc.GetWithName(playlist)
+	if err != nil {
+		return err
+	}
+	return svc.DeleteItem(pl.ID, k)
 }
 
 func (l *Playlist) updateEpisodeCache(episodes *EpisodeList) {
 	c := playlistEpisodeCache{}
 	for _, e := range *episodes {
 		if _, ok := c[e.Show]; !ok {
-			c[e.Show] = map[int]map[int]string{}
+			c[e.Show] = map[int]map[int]int{}
 		}
 		if _, ok := c[e.Show][e.Season]; !ok {
-			c[e.Show][e.Season] = map[int]string{}
+			c[e.Show][e.Season] = map[int]int{}
 		}
 		c[e.Show][e.Season][e.Episode] = e.PlaylistItemID
 	}

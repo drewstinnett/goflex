@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"log/slog"
 	"strconv"
 
@@ -28,11 +29,16 @@ var deletePlaylistItemCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		slog.Info("Removing item from playlist", "playlist", args[0], "season", season, "episode", episode)
-		if err := pl.DeleteEpisode(args[1], season, episode); err != nil {
-			return err
-		}
-		return nil
+		_ = season
+		_ = episode
+		_ = pl
+		/*
+			slog.Info("Removing item from playlist", "playlist", args[0], "season", season, "episode", episode)
+			if err := pl.DeleteEpisode(args[1], season, episode); err != nil {
+				return err
+			}
+		*/
+		return errors.New("not yet implemented, see above")
 	},
 }
 

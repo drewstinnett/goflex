@@ -8,19 +8,19 @@ import (
 
 func TestSubtract(t *testing.T) {
 	given := EpisodeList{
-		{DeprecatedID: "foo"},
-		{DeprecatedID: "bar"},
-		{DeprecatedID: "baz"},
+		{ID: 1},
+		{ID: 2},
+		{ID: 3},
 	}
 	remaining, removed := given.Subtract(EpisodeList{
-		{DeprecatedID: "bar"},
+		{ID: 2},
 	})
 	require.Equal(t, EpisodeList{
-		{DeprecatedID: "foo"},
-		{DeprecatedID: "baz"},
+		{ID: 1},
+		{ID: 3},
 	}, remaining)
 	require.Equal(t, EpisodeList{
-		{DeprecatedID: "bar"},
+		{ID: 2},
 	}, removed)
 }
 
@@ -69,20 +69,20 @@ func TestUpdateCache(t *testing.T) {
 	pl := Playlist{}
 	require.NotPanics(t, func() {
 		pl.updateEpisodeCache(&EpisodeList{
-			{Show: "foo", Season: 1, Episode: 1, PlaylistItemID: "5"},
-			{Show: "foo", Season: 1, Episode: 2, PlaylistItemID: "6"},
+			{Show: "foo", Season: 1, Episode: 1, PlaylistItemID: 5},
+			{Show: "foo", Season: 1, Episode: 2, PlaylistItemID: 6},
 		})
 	})
 	require.Equal(t, playlistEpisodeCache{
 		"foo": {
 			1: {
-				1: "5",
-				2: "6",
+				1: 5,
+				2: 6,
 			},
 		},
 	}, pl.episodeCache)
 
-	k, err := pl.EpisodeKey("foo", 1, 2)
+	k, err := pl.episodeKey("foo", 1, 2)
 	require.NoError(t, err)
-	require.Equal(t, "6", k)
+	require.Equal(t, 6, k)
 }

@@ -3,7 +3,6 @@ module github.com/drewstinnett/plex-truerandom
 go 1.23.3
 
 require (
-	github.com/LukeHagar/plexgo v0.16.1
 	github.com/charmbracelet/log v0.4.0
 	github.com/drewstinnett/gout/v2 v2.3.0
 	github.com/spf13/cobra v1.8.1
@@ -13,10 +12,8 @@ require (
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/charmbracelet/lipgloss v0.10.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/ericlagergren/decimal v0.0.0-20221120152707-495c53812d05 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
