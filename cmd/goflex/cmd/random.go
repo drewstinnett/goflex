@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	plexrando "github.com/drewstinnett/plex-truerandom"
+	plexrando "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 

@@ -114,18 +114,6 @@ func WithPrintCurl() func(*Plex) {
 	}
 }
 
-// Episode represents an episode of television
-type Episode struct {
-	ID             int
-	PlaylistItemID int
-	Title          string
-	Show           string
-	Season         int
-	Episode        int
-	Watched        *time.Time
-	p              *Plex
-}
-
 func (p *Plex) init() error {
 	return nil
 }

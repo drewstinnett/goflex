@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/log"
-	plexrando "github.com/drewstinnett/plex-truerandom"
+	plexrando "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 

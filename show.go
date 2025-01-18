@@ -17,6 +17,19 @@ type Show struct {
 	p           *Plex
 }
 
+// Episode represents an episode of television
+type Episode struct {
+	ID             int
+	PlaylistItemID int
+	Title          string
+	Show           string
+	Season         int
+	Episode        int
+	Watched        *time.Time
+	ViewCount      int
+	p              *Plex
+}
+
 // Season represents a season in a TV show
 type Season struct {
 	ID           int

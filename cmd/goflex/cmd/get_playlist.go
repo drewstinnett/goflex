@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	plexrando "github.com/drewstinnett/go-flex"
 	"github.com/drewstinnett/gout/v2"
-	plexrando "github.com/drewstinnett/plex-truerandom"
 	"github.com/spf13/cobra"
 )
 

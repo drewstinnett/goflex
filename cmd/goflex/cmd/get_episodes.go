@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sort"
 
+	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -13,13 +14,14 @@ var getEpisodesCmd = &cobra.Command{
 	Use:   "episodes SHOW",
 	Short: "Get episodes",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(_ *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
 		shows, err := p.MatchShows(args[0])
 		if err != nil {
 			return err
 		}
+		short := mustGetCmd[bool](*cmd, "short")
 		for _, show := range shows {
 			slog.Info("show", "title", show.Title)
 			seasons, err := show.Seasons()
@@ -48,9 +50,13 @@ var getEpisodesCmd = &cobra.Command{
 					i++
 				}
 				sort.Ints(episodeKeys)
-				for _, k := range episodeKeys {
-					episode := episodes[k]
-					fmt.Println(episode.String())
+				if short {
+					for _, k := range episodeKeys {
+						episode := episodes[k]
+						fmt.Println(episode.String())
+					}
+				} else {
+					gout.MustPrint(episodes)
 				}
 			}
 		}
@@ -61,15 +67,5 @@ var getEpisodesCmd = &cobra.Command{
 
 func init() {
 	getCmd.AddCommand(getEpisodesCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getEspisodesCmd.PersistentFlags().String("library", "TV Seasons", "Library of the TV Show we are randomizing")
-	// getEspisodesCmd.PersistentFlags().String("title", "American Dad!", "Name of the show to include in this playlist")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getEspisodesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	getEpisodesCmd.PersistentFlags().BoolP("short", "s", false, "Show short version of the episode (Name S00E00)")
 }

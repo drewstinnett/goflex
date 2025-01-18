@@ -1,4 +1,4 @@
-module github.com/drewstinnett/plex-truerandom
+module github.com/drewstinnett/go-flex
 
 go 1.23.3
 
