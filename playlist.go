@@ -1,4 +1,4 @@
-package plexrando
+package goflex
 
 import (
 	"errors"
@@ -205,23 +205,10 @@ func (svc *PlaylistServiceOp) updateCache() error {
 	return nil
 }
 
-// Playlist returns a new playlist by the name
-func (p *Plex) Playlist(s string) (*Playlist, error) {
-	pl, ok := p.playlistMap[s]
-	if !ok {
-		return nil, fmt.Errorf("playlist not found. requested: %v, available: %v", s, p.playlistMap)
-	}
-	return &pl, nil
-}
-
 // Episodes returns a new playlist by the name
 func (l *Playlist) Episodes() (EpisodeList, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/playlists/%v/items", l.p.baseURL, l.ID), nil)
-	if err != nil {
-		return nil, err
-	}
 	var plr PlaylistResponse
-	if err := l.p.sendRequest(req, &plr); err != nil {
+	if err := l.p.sendRequest(mustNewRequest("GET", fmt.Sprintf("%v/playlists/%v/items", l.p.baseURL, l.ID)), &plr); err != nil {
 		return nil, err
 	}
 	ret := EpisodeList{}
@@ -252,6 +239,13 @@ func (l *Playlist) Episodes() (EpisodeList, error) {
 		if err != nil {
 			return nil, err
 		}
+		vc := 0
+		if item.ViewCount != "" {
+			var err error
+			if vc, err = strconv.Atoi(item.ViewCount); err != nil {
+				return nil, err
+			}
+		}
 		viewed := time.Unix(viewedInt, 0)
 		ret = append(ret, Episode{
 			ID:             id,
@@ -261,6 +255,7 @@ func (l *Playlist) Episodes() (EpisodeList, error) {
 			Season:         parentI,
 			Episode:        index,
 			Watched:        &viewed,
+			ViewCount:      vc,
 			p:              l.p,
 		})
 	}
@@ -305,20 +300,22 @@ func (l *Playlist) episodeKey(title string, season, episode int) (int, error) {
 	return key, nil
 }
 
-func (svc *PlaylistServiceOp) playlistEpisodeID(playlist, show string, season, episode int) (int, error) {
-	if playlist == "" {
-		return 0, errors.New("must specify the playlist name")
+func (l Playlist) episodeID(show string, season, episode int) (int, error) {
+	if show == "" {
+		return 0, errors.New("must specify a show title")
 	}
-	playlistI, err := svc.GetWithName(playlist)
-	if err != nil {
-		return 0, err
+	if season == 0 {
+		return 0, errors.New("must specify a season")
 	}
-	episodes, err := playlistI.Episodes()
+	if episode == 0 {
+		return 0, errors.New("must specify an episode")
+	}
+	episodes, err := l.Episodes()
 	if err != nil {
 		return 0, err
 	}
 	for _, episodeI := range episodes {
-		if (show == episodeI.Show) && (season != episodeI.Season) && (episode != episodeI.Episode) {
+		if (show == episodeI.Show) && (season == episodeI.Season) && (episode == episodeI.Episode) {
 			return episodeI.PlaylistItemID, nil
 		}
 	}
@@ -330,11 +327,12 @@ func (svc *PlaylistServiceOp) DeleteEpisode(playlist, show string, season, episo
 	if show == "" {
 		return errors.New("cannot delete episode with empty show")
 	}
-	k, err := svc.playlistEpisodeID(playlist, show, season, episode)
+	pl, err := svc.GetWithName(playlist)
 	if err != nil {
 		return err
 	}
-	pl, err := svc.GetWithName(playlist)
+
+	k, err := pl.episodeID(show, season, episode)
 	if err != nil {
 		return err
 	}

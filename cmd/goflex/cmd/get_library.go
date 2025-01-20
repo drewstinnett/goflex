@@ -13,7 +13,7 @@ var getLibraryCmd = &cobra.Command{
 	RunE: func(_ *cobra.Command, _ []string) error {
 		p := newPlex()
 
-		items, err := p.Libraries()
+		items, err := p.Library.List()
 		if err != nil {
 			return err
 		}

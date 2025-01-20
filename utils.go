@@ -1,20 +1,10 @@
-package plexrando
+package goflex
 
 import (
 	"net/http"
 	"strconv"
 	"time"
 )
-
-/*
-func mustNewRequestWithBody(method, url string, body io.Reader) *http.Request {
-	got, err := http.NewRequest(method, url, body)
-	if err != nil {
-		panic(err)
-	}
-	return got
-}
-*/
 
 func mustNewRequest(method, url string) *http.Request {
 	got, err := http.NewRequest(method, url, nil)

@@ -3,25 +3,26 @@ package cmd
 import (
 	"log/slog"
 
-	plexrando "github.com/drewstinnett/go-flex"
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
 )
 
 // getShowsCmd represents the random command
 var getShowsCmd = &cobra.Command{
-	Use:   "shows",
-	Short: "Get shows",
-	Args:  cobra.ExactArgs(0),
+	Use:     "shows",
+	Short:   "Get shows",
+	Aliases: []string{"show"},
+	Args:    cobra.ExactArgs(0),
 	RunE: func(_ *cobra.Command, _ []string) error {
 		p := newPlex()
 
-		libs, err := p.Libraries()
+		libs, err := p.Library.List()
 		if err != nil {
 			return err
 		}
 		for _, lib := range libs {
-			if lib.Type != plexrando.ShowType {
+			if lib.Type != goflex.ShowType {
 				continue
 			}
 			slog.Info("shows in library", "library", lib.Title)

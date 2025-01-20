@@ -15,7 +15,7 @@ var getSeasonsCmd = &cobra.Command{
 	RunE: func(_ *cobra.Command, args []string) error {
 		p := newPlex()
 
-		shows, err := p.MatchShows(args[0])
+		shows, err := p.Shows.Match(args[0])
 		if err != nil {
 			return err
 		}

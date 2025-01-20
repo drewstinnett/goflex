@@ -1,4 +1,4 @@
-package plexrando
+package goflex
 
 import (
 	"fmt"
@@ -43,11 +43,9 @@ func (s SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...string) (Ep
 	}
 	ret := EpisodeList{}
 	for _, item := range res.Video {
-		if item.RatingKey == "" {
-			continue
-		}
 		if ((len(shows) > 0) && !slices.Contains(shows, item.GrandparentTitle)) ||
-			(item.Type != "episode") {
+			(item.Type != "episode") ||
+			(item.RatingKey == "") {
 			continue
 		}
 
@@ -55,7 +53,7 @@ func (s SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...string) (Ep
 		if err != nil {
 			return nil, err
 		}
-		if (since != nil) && viewedAt.Before(*since) {
+		if !viewedAt.IsZero() && (since != nil) && viewedAt.Before(*since) {
 			continue
 		}
 		id, err := strconv.Atoi(item.RatingKey)
@@ -66,9 +64,14 @@ func (s SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...string) (Ep
 		if err != nil {
 			return nil, err
 		}
-		season, err := strconv.Atoi(item.Index)
+		season, err := strconv.Atoi(item.ParentIndex)
 		if err != nil {
 			return nil, err
+		}
+
+		// Skip items we have already added
+		if slices.Contains(ret.ids(), id) {
+			continue
 		}
 
 		ret = append(ret, Episode{
@@ -111,7 +114,7 @@ func (s SessionServiceOp) ActiveEpisodes(shows ...string) (EpisodeList, error) {
 		if err != nil {
 			return nil, err
 		}
-		season, err := strconv.Atoi(item.Index)
+		season, err := strconv.Atoi(item.ParentIndex)
 		if err != nil {
 			return nil, err
 		}

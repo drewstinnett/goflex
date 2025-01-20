@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	goflex "github.com/drewstinnett/go-flex"
+	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -48,4 +50,14 @@ func panicIfErr(err error) {
 
 func toPTR[V any](v V) *V {
 	return &v
+}
+
+func printEpisodes(episodes goflex.EpisodeList, short bool) {
+	if short {
+		for _, episode := range episodes {
+			fmt.Println(episode.String())
+		}
+	} else {
+		gout.MustPrint(episodes)
+	}
 }

@@ -1,4 +1,4 @@
-package plexrando
+package goflex
 
 import (
 	"fmt"
@@ -22,7 +22,6 @@ func TestHistorySession(t *testing.T) {
 		WithBaseURL(svr.URL),
 		WithHTTPClient(http.DefaultClient),
 		WithToken("test-token"),
-		WithoutInit(),
 	)
 	require.NoError(t, err)
 

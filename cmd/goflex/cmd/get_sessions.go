@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"time"
 
-	plexrando "github.com/drewstinnett/go-flex"
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ var getSessionsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
-		var ret plexrando.EpisodeList
+		var ret goflex.EpisodeList
 		if mustGetCmd[bool](*cmd, "history") {
 			since := time.Now().Add(-time.Hour * 24 * time.Duration(mustGetCmd[int](*cmd, "lookback-days")))
 			var err error
@@ -28,9 +27,7 @@ var getSessionsCmd = &cobra.Command{
 				return err
 			}
 		}
-		for _, episode := range ret {
-			fmt.Println(episode.String())
-		}
+		printEpisodes(ret, mustGetCmd[bool](*cmd, "short"))
 
 		return nil
 	},
@@ -40,4 +37,5 @@ func init() {
 	getCmd.AddCommand(getSessionsCmd)
 	getSessionsCmd.PersistentFlags().Bool("history", false, "include session history, not just active")
 	getSessionsCmd.PersistentFlags().Int("lookback-days", 14, "number of days to look back at viewed history")
+	getSessionsCmd.PersistentFlags().BoolP("short", "s", false, "Show short version of the episode (Name S00E00)")
 }

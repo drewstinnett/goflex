@@ -1,4 +1,4 @@
-package plexrando
+package goflex
 
 import (
 	"fmt"
@@ -26,16 +26,15 @@ func TestLibraries(t *testing.T) {
 		WithBaseURL(svr.URL),
 		WithHTTPClient(http.DefaultClient),
 		WithToken("test-token"),
-		WithoutInit(),
 	)
 	require.NoError(t, err)
-	got, err := p.Libraries()
+	got, err := p.Library.List()
 	require.NoError(t, err)
 	require.Equal(t, 6, len(got))
 	require.Equal(t, 1, hits)
 
 	// Call again, but this time we should use the cache, so no additional hits
-	_, err = p.Libraries()
+	_, err = p.Library.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, hits)
 }

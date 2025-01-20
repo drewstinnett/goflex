@@ -1,10 +1,31 @@
-package plexrando
+package goflex
 
 import (
 	"fmt"
 	"net/http"
 	"strconv"
 )
+
+// LibraryService defines how to act against the Library service endpoints
+type LibraryService interface {
+	List() (map[string]*Library, error)
+}
+
+// LibraryServiceOp implements the LibraryService
+type LibraryServiceOp struct {
+	p     *Plex
+	cache map[string]*Library
+}
+
+// List returns a list of libraries on the server
+func (svc *LibraryServiceOp) List() (map[string]*Library, error) {
+	if svc.cache == nil {
+		if err := svc.updateLibraryCache(); err != nil {
+			return nil, err
+		}
+	}
+	return svc.cache, nil
+}
 
 // Library is a collection of movies or shows in Plex
 type Library struct {
@@ -53,36 +74,26 @@ func stringToLibraryType(s string) LibraryType {
 	panic("unknown library type: " + s)
 }
 
-// Libraries returns a list of libraries on the server
-func (p *Plex) Libraries() (map[string]Library, error) {
-	if p.libraryCache == nil {
-		if err := p.updateLibraryCache(); err != nil {
-			return nil, err
-		}
-	}
-	return p.libraryCache, nil
-}
-
-func (p *Plex) updateLibraryCache() error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/library/sections/", p.baseURL), nil)
+func (svc *LibraryServiceOp) updateLibraryCache() error {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%v/library/sections/", svc.p.baseURL), nil)
 	if err != nil {
 		return err
 	}
 	var lr LibraryResponse
-	if err := p.sendRequest(req, &lr); err != nil {
+	if err := svc.p.sendRequest(req, &lr); err != nil {
 		return err
 	}
-	p.libraryCache = map[string]Library{}
+	svc.cache = map[string]*Library{}
 	for _, libd := range lr.Directory {
 		id, err := strconv.Atoi(libd.Key)
 		if err != nil {
 			return err
 		}
-		p.libraryCache[libd.Title] = Library{
+		svc.cache[libd.Title] = &Library{
 			ID:    id,
 			Title: libd.Title,
 			Type:  stringToLibraryType(libd.Type),
-			p:     p,
+			p:     svc.p,
 		}
 	}
 	return nil

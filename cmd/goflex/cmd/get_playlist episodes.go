@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +9,7 @@ var getPlaylistEpisodesCmd = &cobra.Command{
 	Use:   "playlist-episodes TITLE",
 	Short: "Get all of the episodes in a given playlist",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(_ *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
 		playlist, err := p.Playlists.GetWithName(args[0])
@@ -22,13 +20,14 @@ var getPlaylistEpisodesCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		for idx, item := range episodes {
-			fmt.Printf("%-3d: %v\n", idx+1, item.String())
-		}
+
+		printEpisodes(episodes, mustGetCmd[bool](*cmd, "short"))
+
 		return nil
 	},
 }
 
 func init() {
 	getCmd.AddCommand(getPlaylistEpisodesCmd)
+	getPlaylistEpisodesCmd.PersistentFlags().BoolP("short", "s", false, "Show short version of the episode (Name S00E00)")
 }

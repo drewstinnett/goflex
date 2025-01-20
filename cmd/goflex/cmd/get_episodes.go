@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
 	"log/slog"
-	"sort"
 
-	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -17,47 +15,28 @@ var getEpisodesCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
-		shows, err := p.MatchShows(args[0])
+		shows, err := p.Shows.Match(args[0])
 		if err != nil {
 			return err
+		}
+		if len(shows) == 0 {
+			return errors.New("show not found: " + args[0])
 		}
 		short := mustGetCmd[bool](*cmd, "short")
 		for _, show := range shows {
 			slog.Info("show", "title", show.Title)
-			seasons, err := show.Seasons()
+			seasons, err := show.SeasonsSorted()
 			if err != nil {
 				return err
 			}
-			seasonKeys := make([]int, len(seasons))
-			i := 0
-			for k := range seasons {
-				seasonKeys[i] = k
-				i++
-			}
-			sort.Ints(seasonKeys)
-			for _, k := range seasonKeys {
-				season := seasons[k]
-				slog.Info("season", "show", show.Title, "index", season.Index, "key", season.ID)
-				episodes, err := season.Episodes()
+			for _, season := range seasons {
+				slog.Debug("season", "show", show.Title, "index", season.Index, "key", season.ID)
+				episodesM, err := season.Episodes()
 				if err != nil {
 					return err
 				}
+				printEpisodes(episodesM.Sorted(), short)
 
-				episodeKeys := make([]int, len(episodes))
-				i := 0
-				for k := range episodes {
-					episodeKeys[i] = k
-					i++
-				}
-				sort.Ints(episodeKeys)
-				if short {
-					for _, k := range episodeKeys {
-						episode := episodes[k]
-						fmt.Println(episode.String())
-					}
-				} else {
-					gout.MustPrint(episodes)
-				}
 			}
 		}
 

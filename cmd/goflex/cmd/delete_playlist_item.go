@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"log/slog"
 	"strconv"
 
@@ -12,9 +11,8 @@ import (
 var deletePlaylistItemCmd = &cobra.Command{
 	Use:   "playlist-item PLAYLIST_NAME SHOW_NAME SEASON EPISODE",
 	Short: "Delete an entry from a given playlist",
-	Args:  cobra.MinimumNArgs(3),
+	Args:  cobra.MinimumNArgs(4),
 	RunE: func(_ *cobra.Command, args []string) error {
-		slog.Info("DING", "args", args)
 		season, err := strconv.Atoi(args[2])
 		if err != nil {
 			return err
@@ -25,20 +23,15 @@ var deletePlaylistItemCmd = &cobra.Command{
 		}
 		p := newPlex()
 
-		pl, err := p.Playlist(args[0])
+		pl, err := p.Playlists.GetWithName(args[0])
 		if err != nil {
 			return err
 		}
-		_ = season
-		_ = episode
-		_ = pl
-		/*
-			slog.Info("Removing item from playlist", "playlist", args[0], "season", season, "episode", episode)
-			if err := pl.DeleteEpisode(args[1], season, episode); err != nil {
-				return err
-			}
-		*/
-		return errors.New("not yet implemented, see above")
+		slog.Info("Removing item from playlist", "playlist", args[0], "show", args[0], "season", season, "episode", episode)
+		if err := p.Playlists.DeleteEpisode(pl.Title, args[1], season, episode); err != nil {
+			return err
+		}
+		return nil
 	},
 }
 

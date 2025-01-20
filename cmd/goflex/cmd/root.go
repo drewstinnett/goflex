@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/log"
-	plexrando "github.com/drewstinnett/go-flex"
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var verbose bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:           "plex-truerandom",
+	Use:           "goflex",
 	Short:         "Do better playlist randomization",
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -40,7 +40,7 @@ func initConfig() {
 	// Slog
 	opts := log.Options{
 		ReportTimestamp: true,
-		Prefix:          "plex-truerandom 🍿 ",
+		Prefix:          "goflex 🍿 ",
 	}
 	if verbose {
 		opts.Level = log.DebugLevel
@@ -49,15 +49,15 @@ func initConfig() {
 	slog.SetDefault(logger)
 }
 
-func newPlex() *plexrando.Plex {
-	opts := []func(*plexrando.Plex){
-		plexrando.WithBaseURL(os.Getenv("PLEX_URL")),
-		plexrando.WithToken(os.Getenv("PLEX_TOKEN")),
+func newPlex() *goflex.Plex {
+	opts := []func(*goflex.Plex){
+		goflex.WithBaseURL(os.Getenv("PLEX_URL")),
+		goflex.WithToken(os.Getenv("PLEX_TOKEN")),
 	}
 	if os.Getenv("DEBUG_CURL") != "" {
-		opts = append(opts, plexrando.WithPrintCurl())
+		opts = append(opts, goflex.WithPrintCurl())
 	}
-	p, err := plexrando.New(opts...)
+	p, err := goflex.New(opts...)
 	if err != nil {
 		panic(err)
 	}

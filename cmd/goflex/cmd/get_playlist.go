@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	plexrando "github.com/drewstinnett/go-flex"
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +20,7 @@ var getPlaylistCmd = &cobra.Command{
 			}
 			return gout.Print(ret)
 		}
-		ret := make([]*plexrando.Playlist, len(args))
+		ret := make([]*goflex.Playlist, len(args))
 		for idx, item := range args {
 			got, err := p.Playlists.GetWithName(item)
 			if err != nil {
@@ -30,18 +30,6 @@ var getPlaylistCmd = &cobra.Command{
 		}
 		gout.MustPrint(ret)
 
-		/*
-			pl, err := p.Playlist(args[0])
-			if err != nil {
-				return err
-			}
-			episodes, err := pl.Episodes()
-			if err != nil {
-				return err
-			}
-			gout.MustPrint(episodes)
-			slog.Info("completed", "episodes", len(episodes))
-		*/
 		return nil
 	},
 }

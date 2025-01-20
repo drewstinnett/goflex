@@ -1,7 +1,7 @@
 /*
-Package plexrando does the randomization bits
+Package goflex does the randomization bits
 */
-package plexrando
+package goflex
 
 import (
 	"bytes"
@@ -27,25 +27,19 @@ type Plex struct {
 	userAgent string
 	printCurl bool
 	client    *http.Client
-	// API          *plexgo.PlexAPI
-	initialize   bool
-	libraryCache map[string]Library
-	// libraryMap   map[string]int
-	playlistMap map[string]Playlist
-	// showLibraryMap map[string]string
-	// episodeIndex map[string]map[int]map[int]string
 	Playlists PlaylistService
 	Sessions  SessionService
 	Media     MediaService
 	Server    ServerService
+	Shows     ShowService
+	Library   LibraryService
 }
 
 // New uses functional options for a new plex
 func New(opts ...func(*Plex)) (*Plex, error) {
 	p := &Plex{
-		initialize: true,
-		client:     http.DefaultClient,
-		userAgent:  "goflex " + version,
+		client:    http.DefaultClient,
+		userAgent: "goflex " + version,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -57,33 +51,13 @@ func New(opts ...func(*Plex)) (*Plex, error) {
 		return nil, errors.New("must set token")
 	}
 
-	// Set up a mainstream API attribute
-	/*
-		p.API = plexgo.New(
-			plexgo.WithSecurity(p.token),
-			plexgo.WithServerURL(p.baseURL),
-			plexgo.WithClientID("313FF6D7-5795-45E3-874F-B8FCBFD5E587"),
-			plexgo.WithClientName("plex-trueget"),
-			plexgo.WithClientVersion(version),
-		)
-	*/
 	p.Playlists = &PlaylistServiceOp{p: p}
 	p.Sessions = &SessionServiceOp{p: p}
 	p.Media = &MediaServiceOp{p: p}
 	p.Server = &ServerServiceOp{p: p}
-	if p.initialize {
-		if err := p.init(); err != nil {
-			panic(err)
-		}
-	}
+	p.Shows = &ShowServiceOp{p: p}
+	p.Library = &LibraryServiceOp{p: p}
 	return p, nil
-}
-
-// WithoutInit skips the initialization step
-func WithoutInit() func(*Plex) {
-	return func(p *Plex) {
-		p.initialize = false
-	}
 }
 
 // WithHTTPClient sets the http client on a new Plex
@@ -112,10 +86,6 @@ func WithPrintCurl() func(*Plex) {
 	return func(p *Plex) {
 		p.printCurl = true
 	}
-}
-
-func (p *Plex) init() error {
-	return nil
 }
 
 type playlistEpisodeCache map[string]map[int]map[int]int
