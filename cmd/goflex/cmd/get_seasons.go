@@ -21,7 +21,7 @@ var getSeasonsCmd = &cobra.Command{
 		}
 		for _, show := range shows {
 			slog.Info("show", "title", show.Title)
-			seasons, err := show.Seasons()
+			seasons, err := p.Shows.Seasons(*show)
 			if err != nil {
 				return err
 			}

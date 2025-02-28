@@ -5,11 +5,60 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestSortEpisodes(t *testing.T) {
+	episodes := EpisodeList{
+		Episode{Season: 1, Episode: 3},
+		Episode{Season: 2, Episode: 2},
+		Episode{Season: 1, Episode: 1},
+	}
+	sort.Sort(episodes)
+	require.Equal(t, EpisodeList{
+		Episode{Season: 1, Episode: 1},
+		Episode{Season: 1, Episode: 3},
+		Episode{Season: 2, Episode: 2},
+	}, episodes)
+}
+
+func TestShowSeasons(t *testing.T) {
+	svr := srvFile(t, "testdata/seasons.json")
+	defer svr.Close()
+
+	p, err := New(
+		WithBaseURL(svr.URL),
+		WithHTTPClient(http.DefaultClient),
+		WithToken("test-token"),
+	)
+	require.NoError(t, err)
+	seasons, err := p.Shows.Seasons(Show{ID: 5})
+	require.NoError(t, err)
+	require.NotNil(t, seasons)
+	require.Equal(t, 21, len(*seasons))
+	s := *seasons
+	require.Equal(t, s[1].Index, 1)
+	require.Equal(t, s[20].Index, 20)
+}
+
+func TestEpisodeMapList(t *testing.T) {
+	require.Equal(t,
+		EpisodeList{
+			Episode{Season: 1, Episode: 1},
+			Episode{Season: 1, Episode: 2},
+			Episode{Season: 1, Episode: 3},
+		},
+		EpisodeMap{
+			2: &Episode{Season: 1, Episode: 2},
+			3: &Episode{Season: 1, Episode: 3},
+			1: &Episode{Season: 1, Episode: 1},
+		}.List(),
+	)
+}
 
 func TestMatchShows(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -118,4 +167,16 @@ func TestEpisodeSeasons(t *testing.T) {
 	for desc, tt := range tests {
 		require.Equal(t, tt.expect, everything.Seasons(tt.givenStart, tt.givenEnd), desc)
 	}
+}
+
+func TestSeasonMap(t *testing.T) {
+	require.Equal(t, SeasonList{
+		{Index: 1},
+		{Index: 2},
+		{Index: 3},
+	}, SeasonMap{
+		2: &Season{Index: 2},
+		1: &Season{Index: 1},
+		3: &Season{Index: 3},
+	}.sorted())
 }

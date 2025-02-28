@@ -35,7 +35,7 @@ var getEpisodesCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				printEpisodes(episodesM.Sorted(), short)
+				printEpisodes(episodesM.List(), short)
 
 			}
 		}

@@ -12,9 +12,7 @@ import (
 
 func TestLibraries(t *testing.T) {
 	expected, err := os.ReadFile("./testdata/libraries.xml")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 	hits := 0
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		hits++

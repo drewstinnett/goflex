@@ -38,13 +38,13 @@ func (s SessionServiceOp) All(since *time.Time, shows ...string) (EpisodeList, e
 // Filter based on shows. Pass in a nil time.Time to return all times
 func (s SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...string) (EpisodeList, error) {
 	var res HistorySessionResponse
-	if err := s.p.sendRequest(mustNewRequest("GET", fmt.Sprintf("%v/status/sessions/history/all", s.p.baseURL)), &res); err != nil {
+	if err := s.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/status/sessions/history/all", s.p.baseURL)), &res); err != nil {
 		return nil, err
 	}
 	ret := EpisodeList{}
 	for _, item := range res.Video {
 		if ((len(shows) > 0) && !slices.Contains(shows, item.GrandparentTitle)) ||
-			(item.Type != "episode") ||
+			(item.Type != MediaTypeEpisode) ||
 			(item.RatingKey == "") {
 			continue
 		}
@@ -95,12 +95,12 @@ func (s SessionServiceOp) ActiveEpisodes(shows ...string) (EpisodeList, error) {
 		return nil, err
 	}
 	var res ActiveSessionsResponse
-	if err := s.p.sendRequest(req, &res); err != nil {
+	if err := s.p.sendRequestXML(req, &res); err != nil {
 		return nil, err
 	}
 	ret := EpisodeList{}
 	for _, item := range res.Video {
-		if item.Type != "episode" {
+		if item.Type != MediaTypeEpisode {
 			continue
 		}
 		if (len(shows) > 0) && !slices.Contains(shows, item.GrandparentTitle) {

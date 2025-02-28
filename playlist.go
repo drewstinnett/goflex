@@ -3,6 +3,8 @@ package goflex
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -33,12 +35,197 @@ type PlaylistService interface {
 	Exists(string) bool
 	Clear(int) error
 	InsertEpisodes(int, EpisodeList) error
+	Randomize(RandomizeRequest) (*RandomizeResponse, error)
+	// InitCache(PlaylistEpisodeCache) error
 }
 
 // PlaylistServiceOp is the operator for the PlaylistService
 type PlaylistServiceOp struct {
-	cache map[string]*Playlist
-	p     *Plex
+	cache        map[string]*Playlist
+	p            *Plex
+	episodeCache PlaylistEpisodeCache
+}
+
+// PlaylistEpisodeCache describes the playlist episodes
+type PlaylistEpisodeCache map[string]map[int]map[int]int
+
+// Playlist is the important identifiers of a playlist
+type Playlist struct {
+	IDDeprecated float64
+	ID           int
+	Title        string
+	GUID         string
+	Duration     time.Duration
+	p            *Plex
+	episodeCache PlaylistEpisodeCache
+}
+
+// RandomizeSeries defines parameters on randomizing a specific show
+type RandomizeSeries struct {
+	Filter   EpisodeFilter  `json:"episodes"`
+	Lookback *time.Duration `json:"lookback"`
+	RefillAt int            `json:"refill_at"`
+}
+
+// RandomizeRequestOpt defines how you request a new RandomizeRequest
+type RandomizeRequestOpt func(*RandomizeRequest)
+
+// RandomizeRequest decides how to refill a Playlist
+type RandomizeRequest struct {
+	playlist string
+	series   []RandomizeSeries
+	refillAt int
+}
+
+func (svc *PlaylistServiceOp) InitCache(c PlaylistEpisodeCache) {
+	// svc.episodeCache = c
+}
+
+// / NewRandomizeRequest returns a new RandomizeRequest using functional options
+func NewRandomizeRequest(playlist string, series []RandomizeSeries, opts ...RandomizeRequestOpt) (*RandomizeRequest, error) {
+	req := RandomizeRequest{
+		playlist: playlist,
+		series:   series,
+		refillAt: 5,
+	}
+	for _, opt := range opts {
+		opt(&req)
+	}
+	if req.playlist == "" {
+		return nil, errors.New("playlist must not be empty")
+	}
+	if len(req.series) == 0 {
+		return nil, errors.New("series muset not be empty")
+	}
+	return &req, nil
+}
+
+/*
+// titles returns the titles of a given Playlist Randomize request series
+func (r RandomizeRequest) titles() []string {
+	ret := make([]string, len(r.series))
+	for idx, item := range r.series {
+		ret[idx] = item.Filter.Show
+	}
+	sort.Strings(ret)
+	return ret
+}
+*/
+
+// RandomizeResponse is what we get back from requesting a Playlist be randomized
+type RandomizeResponse struct {
+	// Refilled         bool          `json:"refilled,omitempty"`
+	RefillReason     string        `json:"reason,omitempty"`
+	Created          bool          `json:"created,omitempty"`
+	Removed          EpisodeList   `json:"removed,omitempty"`
+	Remaining        EpisodeList   `json:"remaining,omitempty"`
+	OriginalEpisodes EpisodeList   `json:"original_episodes,omitempty"`
+	UnviewedEpisodes EpisodeList   `json:"unviewed_episodes,omitempty"`
+	NextCheck        time.Duration `json:"next_check,omitempty"`
+}
+
+// Randomize randomizes a playlist with episodes from given series
+func (svc *PlaylistServiceOp) Randomize(req RandomizeRequest) (*RandomizeResponse, error) {
+	resp := &RandomizeResponse{}
+
+	// Inspect the playlist, create it if it doesn't exist
+	playlist, created, err := svc.p.Playlists.GetOrCreate(req.playlist, VideoPlaylist, false)
+	if err != nil {
+		return nil, err
+	}
+	resp.Created = created
+
+	// If created, always do a refill
+	if resp.Created {
+		resp.RefillReason = "newly created playlist"
+	} else {
+		// Otherwise get the original episodes
+		var err error
+		resp.OriginalEpisodes, err = playlist.Episodes()
+		if err != nil {
+			return nil, err
+		}
+		slog.Debug("found existing playlist", "count", len(resp.OriginalEpisodes))
+	}
+
+	viewedMap := make(map[string]EpisodeList, len(req.series))
+
+	// collect the total removed and remaining in all of the series below
+	for _, series := range req.series {
+		exists, err := svc.p.Shows.Exists(series.Filter.Show)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			return nil, errors.New("show does not exist: " + series.Filter.Show)
+		}
+
+		// Get viewed
+		viewedMap[series.Filter.Show], err = svc.p.Sessions.HistoryEpisodes(toPTR(time.Now().Add(-fromPTR(series.Lookback))), series.Filter.Show)
+		if err != nil {
+			return nil, err
+		}
+		slog.Debug("found viewed episodes", "count", len(viewedMap[series.Filter.Show]))
+
+		// Figure out remaining
+		remaining, removed := resp.OriginalEpisodes.Subtract(viewedMap[series.Filter.Show])
+		slog.Debug("removed viewed episodes", "removed", len(removed), "remaining", len(remaining), "show", series.Filter.Show)
+		resp.Remaining = append(resp.Remaining, remaining...)
+		resp.Removed = append(resp.Removed, removed...)
+
+	}
+
+	// Did we dip below the refill line?
+	if (resp.RefillReason == "") && len(resp.Remaining) <= req.refillAt {
+		resp.RefillReason = fmt.Sprintf("playlist dipped below %v, was at: %v", req.refillAt, len(resp.Remaining))
+	}
+
+	// Remove things we have seen
+	if len(resp.Removed) > 0 {
+		slog.Debug("New length of episodes after removing viewed", "remaining", len(resp.Remaining), "removed", len(resp.Removed), "original", len(resp.OriginalEpisodes))
+		for _, item := range resp.Removed {
+			slog.Info("removing episode", "playlist", req.playlist, "episode", item.String())
+			if err := svc.DeleteEpisode(playlist.Title, item.Show, item.Season, item.Episode); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if resp.RefillReason != "" {
+		slog.Debug("attempting to refill playlist", "playlist", req.playlist, "reason", resp.RefillReason)
+		if err := svc.Clear(playlist.ID); err != nil {
+			return nil, err
+		}
+
+		for _, series := range req.series {
+			shows, err := svc.p.Shows.Match(series.Filter.Show)
+			if err != nil {
+				return nil, err
+			}
+
+			allEpisodes, err := shows.EpisodesWithFilter(EpisodeFilter{
+				LatestSeason:   series.Filter.LatestSeason,
+				EarliestSeason: series.Filter.EarliestSeason,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			unviewedEpisodes, _ := allEpisodes.Subtract(viewedMap[series.Filter.Show])
+			rand.Shuffle(len(unviewedEpisodes), func(i, j int) {
+				unviewedEpisodes[i], unviewedEpisodes[j] = unviewedEpisodes[j], unviewedEpisodes[i]
+			})
+			resp.UnviewedEpisodes = append(resp.UnviewedEpisodes, unviewedEpisodes...)
+		}
+
+		if len(resp.UnviewedEpisodes) < req.refillAt {
+			return nil, fmt.Errorf("not enough unwatched episodes to refill. unwatched: %v, refill-at: %v", len(resp.UnviewedEpisodes), req.refillAt)
+		} else {
+			slog.Info("refilling playlist", "title", playlist.Title, "episodes", len(resp.UnviewedEpisodes), "reason", resp.RefillReason)
+			return resp, svc.InsertEpisodes(playlist.ID, resp.UnviewedEpisodes)
+		}
+	}
+	return resp, nil
 }
 
 // InsertEpisodes inserts an episode in to a playlist
@@ -55,7 +242,7 @@ func (svc *PlaylistServiceOp) InsertEpisodes(playlistID int, episodes EpisodeLis
 		return err
 	}
 	var ret struct{}
-	if err := svc.p.sendRequest(mustNewRequest("PUT",
+	if err := svc.p.sendRequestXML(mustNewRequest("PUT",
 		fmt.Sprintf("%v/playlists/%v/items?uri=%v",
 			svc.p.baseURL,
 			playlistID,
@@ -75,7 +262,7 @@ func (svc *PlaylistServiceOp) Clear(id int) error {
 		return err
 	}
 	var res struct{}
-	if err := svc.p.sendRequest(req, &res); err != nil {
+	if err := svc.p.sendRequestXML(req, &res); err != nil {
 		return err
 	}
 	return svc.updateCache()
@@ -88,7 +275,7 @@ func (svc *PlaylistServiceOp) Delete(id int) error {
 		return err
 	}
 	var res struct{}
-	if err := svc.p.sendRequest(req, &res); err != nil {
+	if err := svc.p.sendRequestXML(req, &res); err != nil {
 		return err
 	}
 	return svc.updateCache()
@@ -141,7 +328,7 @@ func (svc *PlaylistServiceOp) Create(title string, kind PlaylistType, smart bool
 	}
 	req := mustNewRequest("POST", fmt.Sprintf("%v/playlists?type=%v&title=%v&smart=%v&uri=server://%v/com.plexapp.plugins.library/", svc.p.baseURL, kind, url.QueryEscape(title), smartInt, machineID))
 	var res CreatePlaylistResponse
-	if err := svc.p.sendRequest(req, &res); err != nil {
+	if err := svc.p.sendRequestXML(req, &res); err != nil {
 		return err
 	}
 	return svc.updateCache()
@@ -177,7 +364,7 @@ func (svc *PlaylistServiceOp) updateCache() error {
 		return err
 	}
 	var pr PlaylistsResponse
-	if err := svc.p.sendRequest(req, &pr); err != nil {
+	if err := svc.p.sendRequestXML(req, &pr); err != nil {
 		return err
 	}
 
@@ -208,7 +395,7 @@ func (svc *PlaylistServiceOp) updateCache() error {
 // Episodes returns a new playlist by the name
 func (l *Playlist) Episodes() (EpisodeList, error) {
 	var plr PlaylistResponse
-	if err := l.p.sendRequest(mustNewRequest("GET", fmt.Sprintf("%v/playlists/%v/items", l.p.baseURL, l.ID)), &plr); err != nil {
+	if err := l.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/playlists/%v/items", l.p.baseURL, l.ID)), &plr); err != nil {
 		return nil, err
 	}
 	ret := EpisodeList{}
@@ -271,7 +458,7 @@ func (svc *PlaylistServiceOp) DeleteItem(id int, keys ...int) error {
 			return err
 		}
 		var got struct{}
-		if err := svc.p.sendRequest(req, &got); err != nil {
+		if err := svc.p.sendRequestXML(req, &got); err != nil {
 			return err
 		}
 	}
@@ -340,7 +527,7 @@ func (svc *PlaylistServiceOp) DeleteEpisode(playlist, show string, season, episo
 }
 
 func (l *Playlist) updateEpisodeCache(episodes *EpisodeList) {
-	c := playlistEpisodeCache{}
+	c := PlaylistEpisodeCache{}
 	for _, e := range *episodes {
 		if _, ok := c[e.Show]; !ok {
 			c[e.Show] = map[int]map[int]int{}

@@ -10,18 +10,92 @@ import (
 	"time"
 )
 
+const (
+	// MediaTypeEpisode is the string for "episode"
+	MediaTypeEpisode string = "episode"
+	// MediaTypeShow represents a show
+	MediaTypeShow string = "show"
+)
+
 // ShowService describes how the show api behaves. This is a meta service where
 // I'm putting some business logic on top of the API for tv shows
 type ShowService interface {
 	Exists(string) (bool, error)
 	Match(string) (ShowList, error)
+	StrictMatch(string) (ShowList, error)
+	Seasons(Show) (*SeasonMap, error)
 }
 
 // ShowServiceOp implements the ShowService operator
 type ShowServiceOp struct {
-	p     *Plex
-	cache ShowList
+	p           *Plex
+	cache       ShowList
+	seasonCache map[string]*SeasonMap
 }
+
+// Seasons returns the seasons for a given show
+func (svc *ShowServiceOp) Seasons(show Show) (*SeasonMap, error) {
+	if svc.seasonCache == nil {
+		svc.seasonCache = map[string]*SeasonMap{}
+	}
+	if _, ok := svc.seasonCache[show.Title]; !ok {
+		if err := svc.updateSeasonCache(show); err != nil {
+			return nil, err
+		}
+	}
+	return svc.seasonCache[show.Title], nil
+}
+
+func (svc *ShowServiceOp) updateSeasonCache(s Show) error {
+	var sr seasonsResponse
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/library/metadata/%v/children", svc.p.baseURL, s.ID)), &sr); err != nil {
+		return err
+	}
+	svc.seasonCache = map[string]*SeasonMap{}
+	svc.seasonCache[s.Title] = &SeasonMap{}
+	sm := SeasonMap{}
+	for _, item := range sr.Mediacontainer.Metadata {
+		if item.RatingKey == "" {
+			continue
+		}
+		id, err := strconv.Atoi(item.RatingKey)
+		if err != nil {
+			return err
+		}
+		sm[item.Index] = &Season{
+			ID:    id,
+			Index: item.Index,
+			p:     s.p,
+		}
+	}
+	svc.seasonCache[s.Title] = &sm
+	return nil
+}
+
+/*
+func (svc *ShowServiceOp) updateSeasonCacheDeprecated(s Show) error {
+	var sr seasonsResponse
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/library/metadata/%v/children", svc.p.baseURL, s.ID)), &sr); err != nil {
+		return err
+	}
+	s.seasonCache = map[int]*Season{}
+	for _, item := range sr.Mediacontainer.Metadata {
+		if item.RatingKey == "" {
+			continue
+		}
+		id, err := strconv.Atoi(item.RatingKey)
+		if err != nil {
+			return err
+		}
+		s.seasonCache[item.Index] = &Season{
+			ID:    id,
+			Index: item.Index,
+			p:     s.p,
+		}
+	}
+	return nil
+}
+*/
 
 func (svc *ShowServiceOp) updateCache() error {
 	libs, err := svc.p.Library.List()
@@ -58,6 +132,18 @@ func (svc *ShowServiceOp) Exists(name string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+// StrictMatch returns an error if no shows are matched
+func (svc *ShowServiceOp) StrictMatch(name string) (ShowList, error) {
+	got, err := svc.Match(name)
+	if err != nil {
+		return nil, err
+	}
+	if len(got) == 0 {
+		return nil, errors.New("no shows found matching: " + name)
+	}
+	return got, nil
 }
 
 // Match returns shows with the given name
@@ -111,8 +197,8 @@ type SeasonList []*Season
 // EpisodeMap is a map of episode numbers to episode objects
 type EpisodeMap map[int]*Episode
 
-// Sorted returns a list of seasons sorted by season number
-func (e EpisodeMap) Sorted() EpisodeList {
+// List returns a list of seasons sorted by season number
+func (e EpisodeMap) List() EpisodeList {
 	seasonKeys := make([]int, len(e))
 	i := 0
 	for k := range e {
@@ -130,8 +216,8 @@ func (e EpisodeMap) Sorted() EpisodeList {
 // SeasonMap is a map of season numbers to season objects
 type SeasonMap map[int]*Season
 
-// Sorted returns a list of seasons sorted by season number
-func (s SeasonMap) Sorted() []*Season {
+// sorted returns a list of seasons sorted by season number
+func (s SeasonMap) sorted() SeasonList {
 	seasonKeys := make([]int, len(s))
 	i := 0
 	for k := range s {
@@ -139,7 +225,7 @@ func (s SeasonMap) Sorted() []*Season {
 		i++
 	}
 	sort.Ints(seasonKeys)
-	ret := make([]*Season, len(s))
+	ret := make(SeasonList, len(s))
 	for idx, k := range seasonKeys {
 		ret[idx] = s[k]
 	}
@@ -151,6 +237,7 @@ type ShowList []*Show
 
 // EpisodeFilter defines the filters the returned episodes
 type EpisodeFilter struct {
+	Show           string
 	EarliestSeason int
 	LatestSeason   int
 }
@@ -217,7 +304,7 @@ func (s *Season) updateEpisodeCache() error {
 		return err
 	}
 	var er EpisodesResponse
-	if err := s.p.sendRequest(req, &er); err != nil {
+	if err := s.p.sendRequestXML(req, &er); err != nil {
 		return err
 	}
 	s.episodeCache = map[int]*Episode{}
@@ -240,7 +327,7 @@ func (s *Season) updateEpisodeCache() error {
 				return err
 			}
 		}
-		s.episodeCache[index] = &Episode{
+		e := &Episode{
 			ID:        id,
 			Title:     item.Title,
 			Show:      item.GrandparentTitle,
@@ -249,6 +336,17 @@ func (s *Season) updateEpisodeCache() error {
 			Episode:   index,
 			p:         s.p,
 		}
+		if item.LastViewedAt != "" {
+			var viewedInt int64
+			var err error
+			viewedInt, err = strconv.ParseInt(item.LastViewedAt, 10, 64)
+			if err != nil {
+				return err
+			}
+			viewed := time.Unix(viewedInt, 0)
+			e.Watched = &viewed
+		}
+		s.episodeCache[index] = e
 	}
 	return nil
 }
@@ -259,7 +357,7 @@ func (s *Show) updateSeasonCache() error {
 		return err
 	}
 	var sr SeasonsResponse
-	if err := s.p.sendRequest(req, &sr); err != nil {
+	if err := s.p.sendRequestXML(req, &sr); err != nil {
 		return err
 	}
 	s.seasonCache = map[int]*Season{}
@@ -300,7 +398,7 @@ func (s *Show) SeasonsSorted() (SeasonList, error) {
 	if err != nil {
 		return nil, err
 	}
-	return m.Sorted(), nil
+	return m.sorted(), nil
 }
 
 // Shows returns a list of TV shows in a given library
@@ -322,7 +420,7 @@ func (l *Library) updateShowCache() error {
 		return err
 	}
 	var sr ShowsResponse
-	if err := l.p.sendRequest(req, &sr); err != nil {
+	if err := l.p.sendRequestXML(req, &sr); err != nil {
 		return err
 	}
 	l.showCache = map[string]*Show{}
@@ -360,9 +458,68 @@ func (p *Plex) episodeID(show string, season, episode int) (int, error) {
 // EpisodeList is multiple Episodes
 type EpisodeList []Episode
 
+// EarliestWatched returns the episode watched the earliest in the list
+func (l EpisodeList) EarliestWatched() *Episode {
+	var ret *Episode
+	for _, episode := range l {
+		if episode.Watched != nil {
+			if (ret == nil) || (ret.Watched.After(*episode.Watched)) {
+				ret = &episode
+			}
+		}
+	}
+	return ret
+}
+
+// LatestWatched returns the episode watched the latest in the list
+func (l EpisodeList) LatestWatched() *Episode {
+	var ret *Episode
+	for _, episode := range l {
+		if episode.Watched != nil {
+			if (ret == nil) || (!ret.Watched.After(*episode.Watched)) {
+				ret = &episode
+			}
+		}
+	}
+	return ret
+}
+
+// WatchSpan returns the time between the earliest and latest watch
+func (l EpisodeList) WatchSpan() (*time.Duration, error) {
+	earliest := l.EarliestWatched()
+	if earliest == nil {
+		return nil, errors.New("could not find earliest watched")
+	}
+
+	latest := l.LatestWatched()
+	if latest == nil {
+		return nil, errors.New("could not find latest watched")
+	}
+
+	return toPTR(latest.Watched.Sub(fromPTR(earliest.Watched))), nil
+}
+
 // Runtime returns the total runtime of all episodes
 func (l EpisodeList) Runtime() time.Duration {
 	return 0
+}
+
+// Len returns the length of the list, to satisfy the sortable interface
+func (l EpisodeList) Len() int {
+	return len(l)
+}
+
+// Swap fulfills the sortable interface
+func (l EpisodeList) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+// Less determines if one episode appears sooner than another
+func (l EpisodeList) Less(i, j int) bool {
+	if l[i].Season != l[j].Season {
+		return l[i].Season < l[j].Season
+	}
+	return l[i].Episode < l[j].Episode
 }
 
 // Seasons returns episodes matching a season start and stop
@@ -448,4 +605,104 @@ func (e Episode) String() string {
 // slug returns a unique string for a given episode
 func (e Episode) slug() string {
 	return fmt.Sprintf("%v:%v:%v", e.Season, e.Season, e.Episode)
+}
+
+func episodeWith(m Metadata) (*Episode, error) {
+	if m.RatingKey == "" {
+		return nil, errors.New("missing rating key")
+	}
+	id, err := strconv.Atoi(m.RatingKey)
+	if err != nil {
+		return nil, err
+	}
+	return &Episode{
+		ID:        id,
+		Title:     m.Title,
+		Show:      m.GrandparentTitle,
+		Season:    m.ParentIndex,
+		ViewCount: m.ViewCount,
+		Episode:   m.Index,
+	}, nil
+}
+
+func showWith(m Metadata) (*Show, error) {
+	id, err := strconv.Atoi(m.RatingKey)
+	if err != nil {
+		return nil, err
+	}
+	return &Show{
+		ID:    id,
+		Title: m.Title,
+	}, nil
+}
+
+type seasonsResponse struct {
+	Mediacontainer struct {
+		Size                int    `json:"size"`
+		Allowsync           bool   `json:"allowSync"`
+		Art                 string `json:"art"`
+		Identifier          string `json:"identifier"`
+		Key                 string `json:"key"`
+		Librarysectionid    int    `json:"librarySectionID"`
+		Librarysectiontitle string `json:"librarySectionTitle"`
+		Librarysectionuuid  string `json:"librarySectionUUID"`
+		Mediatagprefix      string `json:"mediaTagPrefix"`
+		Mediatagversion     int    `json:"mediaTagVersion"`
+		Nocache             bool   `json:"nocache"`
+		Parentindex         int    `json:"parentIndex"`
+		Parenttitle         string `json:"parentTitle"`
+		Parentyear          int    `json:"parentYear"`
+		Summary             string `json:"summary"`
+		Theme               string `json:"theme"`
+		Thumb               string `json:"thumb"`
+		Title1              string `json:"title1"`
+		Title2              string `json:"title2"`
+		Viewgroup           string `json:"viewGroup"`
+		Directory           []struct {
+			Leafcount       int    `json:"leafCount"`
+			Thumb           string `json:"thumb"`
+			Viewedleafcount int    `json:"viewedLeafCount"`
+			Key             string `json:"key"`
+			Title           string `json:"title"`
+		} `json:"Directory"`
+		Metadata []struct {
+			RatingKey       string `json:"ratingKey"`
+			Key             string `json:"key"`
+			Parentratingkey string `json:"parentRatingKey"`
+			GUID            string `json:"guid"`
+			Parentguid      string `json:"parentGuid"`
+			Parentslug      string `json:"parentSlug"`
+			Parentstudio    string `json:"parentStudio"`
+			Type            string `json:"type"`
+			Title           string `json:"title"`
+			Parentkey       string `json:"parentKey"`
+			Parenttitle     string `json:"parentTitle"`
+			Summary         string `json:"summary"`
+			Index           int    `json:"index"`
+			Parentindex     int    `json:"parentIndex"`
+			Viewcount       int    `json:"viewCount"`
+			Skipcount       int    `json:"skipCount,omitempty"`
+			Lastviewedat    int    `json:"lastViewedAt"`
+			Parentyear      int    `json:"parentYear"`
+			Thumb           string `json:"thumb"`
+			Art             string `json:"art"`
+			Parentthumb     string `json:"parentThumb"`
+			Parenttheme     string `json:"parentTheme"`
+			Leafcount       int    `json:"leafCount"`
+			Viewedleafcount int    `json:"viewedLeafCount"`
+			Addedat         int    `json:"addedAt"`
+			Updatedat       int    `json:"updatedAt"`
+			Image           []struct {
+				Alt  string `json:"alt"`
+				Type string `json:"type"`
+				URL  string `json:"url"`
+			} `json:"Image"`
+			Ultrablurcolors struct {
+				Topleft     string `json:"topLeft"`
+				Topright    string `json:"topRight"`
+				Bottomright string `json:"bottomRight"`
+				Bottomleft  string `json:"bottomLeft"`
+			} `json:"UltraBlurColors,omitempty"`
+		} `json:"Metadata"`
+	} `json:"MediaContainer"`
 }

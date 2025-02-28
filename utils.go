@@ -29,3 +29,11 @@ func dateFromUnixString(s string) (*time.Time, error) {
 func toPTR[V any](v V) *V {
 	return &v
 }
+
+func fromPTR[T any](ptr *T) T {
+	if ptr != nil {
+		return *ptr
+	}
+	var zero T
+	return zero
+}

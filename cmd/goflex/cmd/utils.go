@@ -61,3 +61,11 @@ func printEpisodes(episodes goflex.EpisodeList, short bool) {
 		gout.MustPrint(episodes)
 	}
 }
+
+func fromPTR[T any](ptr *T) T {
+	if ptr != nil {
+		return *ptr
+	}
+	var zero T
+	return zero
+}

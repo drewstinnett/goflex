@@ -78,13 +78,13 @@ var randomCmd = &cobra.Command{
 		}
 
 		if refillPlaylist {
-			slog.Info("refilling playlist", "playlist", args[0], "reason", refillReason)
+			slog.Debug("attempting to refill playlist", "playlist", args[0], "reason", refillReason)
 			if err := p.Playlists.Clear(playlist.ID); err != nil {
 				return err
 			}
 
-			title := mustGetCmd[string](*cmd, "title")
-			shows, err := p.Shows.Match(title)
+			// title := mustGetCmd[string](*cmd, "title")
+			shows, err := p.Shows.Match(showTitle)
 			if err != nil {
 				return err
 			}
@@ -101,8 +101,13 @@ var randomCmd = &cobra.Command{
 			rand.Shuffle(len(unviewedEpisodes), func(i, j int) {
 				unviewedEpisodes[i], unviewedEpisodes[j] = unviewedEpisodes[j], unviewedEpisodes[i]
 			})
-			slog.Debug("refilling playlist", "title", playlist.Title, "episodes", len(unviewedEpisodes))
-			return p.Playlists.InsertEpisodes(playlist.ID, unviewedEpisodes)
+
+			if len(unviewedEpisodes) < refillAt {
+				return fmt.Errorf("not enough unwatched episodes to refill. unwatched: %v, refill-at: %v", len(unviewedEpisodes), refillAt)
+			} else {
+				slog.Info("refilling playlist", "title", playlist.Title, "episodes", len(unviewedEpisodes), "reason", refillReason)
+				return p.Playlists.InsertEpisodes(playlist.ID, unviewedEpisodes)
+			}
 		}
 		return nil
 	},
@@ -110,13 +115,21 @@ var randomCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(randomCmd)
-	randomCmd.PersistentFlags().String("title", "", "Name of the show to include in this playlist")
-	if err := randomCmd.MarkPersistentFlagRequired("title"); err != nil {
-		panic(err)
-	}
-
 	randomCmd.PersistentFlags().Int("lookback-days", 14, "number of days to look back at viewed history")
 	randomCmd.PersistentFlags().Int("refill-at", 10, "refill the playlist when it reaches this remaining number of episodes")
-	randomCmd.PersistentFlags().Int("earliest-season", 0, "earliest season to include in the playlist")
-	randomCmd.PersistentFlags().Int("latest-season", 0, "latest season to include in the playlist")
+
+	if err := bindShowFilter(randomCmd); err != nil {
+		panic(err)
+	}
+}
+
+func bindShowFilter(cmd *cobra.Command) error {
+	cmd.PersistentFlags().String("title", "", "Name of the show to include in this playlist")
+	if err := cmd.MarkPersistentFlagRequired("title"); err != nil {
+		return err
+	}
+
+	cmd.PersistentFlags().Int("earliest-season", 0, "earliest season to include in the playlist")
+	cmd.PersistentFlags().Int("latest-season", 0, "latest season to include in the playlist")
+	return nil
 }

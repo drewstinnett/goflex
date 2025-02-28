@@ -18,13 +18,13 @@ type MediaServiceOp struct {
 // MarkWatched marks a piece of media as watched
 func (svc *MediaServiceOp) MarkWatched(key int) error {
 	var ret struct{}
-	return svc.p.sendRequest(mustNewRequest("GET", fmt.Sprintf("%v/:/scrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key)), &ret)
+	return svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/:/scrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key)), &ret)
 }
 
 // MarkUnWatched marks a piece of media as watched
 func (svc *MediaServiceOp) MarkUnWatched(key int) error {
 	var ret struct{}
-	return svc.p.sendRequest(mustNewRequest("GET", fmt.Sprintf("%v/:/unscrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key)), &ret)
+	return svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/:/unscrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key)), &ret)
 }
 
 // MarkEpisodeWatched marks an episode as watched

@@ -80,7 +80,7 @@ func (svc *LibraryServiceOp) updateLibraryCache() error {
 		return err
 	}
 	var lr LibraryResponse
-	if err := svc.p.sendRequest(req, &lr); err != nil {
+	if err := svc.p.sendRequestXML(req, &lr); err != nil {
 		return err
 	}
 	svc.cache = map[string]*Library{}

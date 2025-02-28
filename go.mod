@@ -5,6 +5,7 @@ go 1.23.3
 require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/drewstinnett/gout/v2 v2.3.0
+	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	moul.io/http2curl/v2 v2.3.0
