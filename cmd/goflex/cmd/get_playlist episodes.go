@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -12,11 +13,12 @@ var getPlaylistEpisodesCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
-		playlist, err := p.Playlists.GetWithName(args[0])
+		playlist, err := p.Playlists.GetWithName(goflex.PlaylistTitle(args[0]))
 		if err != nil {
 			return err
 		}
-		episodes, err := playlist.Episodes()
+		// episodes, err := playlist.Episodes()
+		episodes, err := p.Playlists.Episodes(*playlist)
 		if err != nil {
 			return err
 		}

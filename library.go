@@ -1,39 +1,56 @@
 package goflex
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // LibraryService defines how to act against the Library service endpoints
 type LibraryService interface {
-	List() (map[string]*Library, error)
+	List() (LibraryMap, error)
+	Shows(Library) (ShowMap, error)
 }
 
 // LibraryServiceOp implements the LibraryService
 type LibraryServiceOp struct {
-	p     *Plex
-	cache map[string]*Library
+	p *Plex
 }
 
 // List returns a list of libraries on the server
-func (svc *LibraryServiceOp) List() (map[string]*Library, error) {
-	if svc.cache == nil {
-		if err := svc.updateLibraryCache(); err != nil {
+func (svc *LibraryServiceOp) List() (LibraryMap, error) {
+	var lr LibraryResponse
+	if err := svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/library/sections/", svc.p.baseURL)), &lr, toPTR(time.Minute*60)); err != nil {
+		return nil, err
+	}
+	ret := LibraryMap{}
+	for _, libd := range lr.Directory {
+		id, err := strconv.Atoi(libd.Key)
+		if err != nil {
 			return nil, err
 		}
+		ret[LibraryTitle(libd.Title)] = &Library{
+			ID:    id,
+			Title: libd.Title,
+			Type:  stringToLibraryType(libd.Type),
+		}
 	}
-	return svc.cache, nil
+	return ret, nil
 }
+
+// LibraryTitle just represents the title of the Library
+type LibraryTitle string
+
+// LibraryMap is a map of all libraries
+type LibraryMap map[LibraryTitle]*Library
 
 // Library is a collection of movies or shows in Plex
 type Library struct {
-	ID        int
-	Title     string
-	Type      LibraryType
-	showCache map[string]*Show
-	p         *Plex
+	ID    int
+	Title string
+	Type  LibraryType
 }
 
 // LibraryType is the type of library
@@ -70,31 +87,35 @@ func stringToLibraryType(s string) LibraryType {
 		return ArtistType
 	case "movie":
 		return MovieType
+	default:
+		panic("unknown library type: " + s)
 	}
-	panic("unknown library type: " + s)
 }
 
-func (svc *LibraryServiceOp) updateLibraryCache() error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/library/sections/", svc.p.baseURL), nil)
+// Shows returns all shows in a given library
+func (svc *LibraryServiceOp) Shows(l Library) (ShowMap, error) {
+	if l.Type != ShowType {
+		return nil, errors.New("library is not a show library")
+	}
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%v/library/sections/%v/all", svc.p.baseURL, l.ID), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var lr LibraryResponse
-	if err := svc.p.sendRequestXML(req, &lr); err != nil {
-		return err
+	var sr ShowsResponse
+	if err := svc.p.sendRequestXML(req, &sr, toPTR(time.Minute*5)); err != nil {
+		return nil, err
 	}
-	svc.cache = map[string]*Library{}
-	for _, libd := range lr.Directory {
-		id, err := strconv.Atoi(libd.Key)
+	ret := ShowMap{}
+	for _, item := range sr.Directory {
+		id, err := strconv.Atoi(item.RatingKey)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		svc.cache[libd.Title] = &Library{
+		ret[ShowTitle(item.Title)] = &Show{
 			ID:    id,
-			Title: libd.Title,
-			Type:  stringToLibraryType(libd.Type),
-			p:     svc.p,
+			Title: ShowTitle(item.Title),
 		}
 	}
-	return nil
+	return ret, nil
 }

@@ -7,6 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func stringsToShowTitles(s []string) []goflex.ShowTitle {
+	ret := make([]goflex.ShowTitle, len(s))
+	for idx, item := range s {
+		ret[idx] = goflex.ShowTitle(item)
+	}
+	return ret
+}
+
 // getSessionsCmd represents the random command
 var getSessionsCmd = &cobra.Command{
 	Use:   "sessions",
@@ -18,12 +26,12 @@ var getSessionsCmd = &cobra.Command{
 		if mustGetCmd[bool](*cmd, "history") {
 			since := time.Now().Add(-time.Hour * 24 * time.Duration(mustGetCmd[int](*cmd, "lookback-days")))
 			var err error
-			if ret, err = p.Sessions.HistoryEpisodes(&since, args...); err != nil {
+			if ret, err = p.Sessions.HistoryEpisodes(&since, stringsToShowTitles(args)...); err != nil {
 				return err
 			}
 		} else {
 			var err error
-			if ret, err = p.Sessions.ActiveEpisodes(args...); err != nil {
+			if ret, err = p.Sessions.ActiveEpisodes(stringsToShowTitles(args)...); err != nil {
 				return err
 			}
 		}

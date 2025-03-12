@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/url"
+	"time"
 )
 
 // ServerService describes the Server endpoints
@@ -20,14 +21,14 @@ type ServerService interface {
 
 // ServerServiceOp is the operator for the ServerService
 type ServerServiceOp struct {
-	p             *Plex
-	identityCache *IdentityResponse
+	p *Plex
+	// identityCache *IdentityResponse
 }
 
 // Search searches the plex libraries
 func (svc *ServerServiceOp) Search(q string) (*Search, error) {
 	var ret searchResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/search?query=%v", svc.p.baseURL, url.QueryEscape(q))), &ret); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/search?query=%v", svc.p.baseURL, url.QueryEscape(q))), &ret, nil); err != nil {
 		return nil, err
 	}
 	return &ret.Search, nil
@@ -36,7 +37,7 @@ func (svc *ServerServiceOp) Search(q string) (*Search, error) {
 // Accounts returns accounts
 func (svc *ServerServiceOp) Accounts() (*Accounts, error) {
 	var ret accountsResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/accounts", svc.p.baseURL)), &ret); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/accounts", svc.p.baseURL)), &ret, toPTR(time.Hour*6)); err != nil {
 		return nil, err
 	}
 	return &ret.Accounts, nil
@@ -45,7 +46,7 @@ func (svc *ServerServiceOp) Accounts() (*Accounts, error) {
 // Servers returns a list of plex servers
 func (svc *ServerServiceOp) Servers() (*Servers, error) {
 	var ret serversResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/servers", svc.p.baseURL)), &ret); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/servers", svc.p.baseURL)), &ret, toPTR(time.Hour*6)); err != nil {
 		return nil, err
 	}
 	return &ret.Servers, nil
@@ -54,7 +55,7 @@ func (svc *ServerServiceOp) Servers() (*Servers, error) {
 // Capabilities returns the capabilities of a host
 func (svc *ServerServiceOp) Capabilities() (*Capabilities, error) {
 	var ret capabilitiesResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/", svc.p.baseURL)), &ret); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/", svc.p.baseURL)), &ret, toPTR(time.Hour*6)); err != nil {
 		return nil, err
 	}
 	return &ret.Capabilities, nil
@@ -63,7 +64,7 @@ func (svc *ServerServiceOp) Capabilities() (*Capabilities, error) {
 // Preferences returns server preferences
 func (svc *ServerServiceOp) Preferences() (*Preferences, error) {
 	var ret prefsResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/:/prefs", svc.p.baseURL)), &ret); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/:/prefs", svc.p.baseURL)), &ret, toPTR(time.Hour*1)); err != nil {
 		return nil, err
 	}
 	return &ret.Preferences, nil
@@ -78,24 +79,13 @@ func (svc *ServerServiceOp) MachineID() (string, error) {
 	return got.MachineIdentifier, nil
 }
 
-func (svc *ServerServiceOp) updateIdentityCache() error {
+func (svc *ServerServiceOp) Identity() (*IdentityResponse, error) {
 	req := mustNewRequest("GET", fmt.Sprintf("%v/identity", svc.p.baseURL))
 	var ret IdentityResponse
-	if err := svc.p.sendRequestXML(req, &ret); err != nil {
-		return err
+	if err := svc.p.sendRequestXML(req, &ret, nil); err != nil {
+		return nil, err
 	}
-	svc.identityCache = &ret
-	return nil
-}
-
-// Identity returns the server identity
-func (svc *ServerServiceOp) Identity() (*IdentityResponse, error) {
-	if svc.identityCache == nil {
-		if err := svc.updateIdentityCache(); err != nil {
-			return nil, err
-		}
-	}
-	return svc.identityCache, nil
+	return &ret, nil
 }
 
 // IdentityResponse is the response back from the identity endpoint

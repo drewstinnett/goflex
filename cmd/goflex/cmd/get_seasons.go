@@ -3,6 +3,7 @@ package cmd
 import (
 	"log/slog"
 
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +16,7 @@ var getSeasonsCmd = &cobra.Command{
 	RunE: func(_ *cobra.Command, args []string) error {
 		p := newPlex()
 
-		shows, err := p.Shows.Match(args[0])
+		shows, err := p.Shows.Match(goflex.ShowTitle(args[0]))
 		if err != nil {
 			return err
 		}

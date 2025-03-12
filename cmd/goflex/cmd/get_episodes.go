@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +16,7 @@ var getEpisodesCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()
 
-		shows, err := p.Shows.Match(args[0])
+		shows, err := p.Shows.Match(goflex.ShowTitle(args[0]))
 		if err != nil {
 			return err
 		}
@@ -25,13 +26,14 @@ var getEpisodesCmd = &cobra.Command{
 		short := mustGetCmd[bool](*cmd, "short")
 		for _, show := range shows {
 			slog.Info("show", "title", show.Title)
-			seasons, err := show.SeasonsSorted()
+			seasons, err := p.Shows.SeasonsSorted(*show)
 			if err != nil {
 				return err
 			}
 			for _, season := range seasons {
 				slog.Debug("season", "show", show.Title, "index", season.Index, "key", season.ID)
-				episodesM, err := season.Episodes()
+				// episodesM, err := season.Episodes()
+				episodesM, err := p.Shows.SeasonEpisodes(season)
 				if err != nil {
 					return err
 				}

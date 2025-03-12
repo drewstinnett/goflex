@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +29,8 @@ var markWatchedCmd = &cobra.Command{
 	},
 }
 
-func episodeArgs(args []string) (string, int, int, error) {
-	show := args[0]
+func episodeArgs(args []string) (goflex.ShowTitle, goflex.SeasonNumber, goflex.EpisodeNumber, error) {
+	show := goflex.ShowTitle(args[0])
 	seasonRaw := args[1]
 	episodeRaw := args[2]
 	season, err := strconv.Atoi(seasonRaw)
@@ -40,7 +41,7 @@ func episodeArgs(args []string) (string, int, int, error) {
 	if err != nil {
 		return "", 0, 0, err
 	}
-	return show, season, episode, nil
+	return show, goflex.SeasonNumber(season), goflex.EpisodeNumber(episode), nil
 }
 
 func init() {

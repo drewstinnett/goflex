@@ -13,6 +13,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
+	"time"
 
 	"moul.io/http2curl/v2"
 )
@@ -21,19 +23,23 @@ const version string = "0.1.0"
 
 // Plex connects to our custom stuff
 type Plex struct {
-	baseURL              string
-	token                string
-	userAgent            string
-	printCurl            bool
-	client               *http.Client
-	Playlists            PlaylistService
-	playlistEpisodeCache PlaylistEpisodeCache
-	Sessions             SessionService
-	Media                MediaService
-	Server               ServerService
-	Shows                ShowService
-	Library              LibraryService
-	Authentication       AuthenticationService
+	baseURL        string
+	token          string
+	userAgent      string
+	printCurl      bool
+	client         *http.Client
+	cache          cache
+	Playlists      PlaylistService
+	Sessions       SessionService
+	Media          MediaService
+	Server         ServerService
+	Shows          ShowService
+	Library        LibraryService
+	Authentication AuthenticationService
+}
+
+type cache struct {
+	db sync.Map
 }
 
 // New uses functional options for a new plex
@@ -57,22 +63,28 @@ func New(opts ...func(*Plex)) (*Plex, error) {
 	p.Media = &MediaServiceOp{p: p}
 	p.Server = &ServerServiceOp{p: p}
 	p.Shows = &ShowServiceOp{p: p}
+	// p.Shows = &ShowServiceOp{p: p}
 	p.Library = &LibraryServiceOp{p: p}
 	p.Authentication = &AuthenticationServiceOp{p: p}
+	p.cache = cache{}
 	return p, nil
+}
+
+func (c *cache) Get(key string) (any, bool) {
+	return c.db.Load(key)
+}
+
+func (c *cache) Set(key string, value any, ttl time.Duration) {
+	c.db.Store(key, value)
+	time.AfterFunc(ttl, func() {
+		c.db.Delete(key)
+	})
 }
 
 // WithHTTPClient sets the http client on a new Plex
 func WithHTTPClient(c *http.Client) func(*Plex) {
 	return func(p *Plex) {
 		p.client = c
-	}
-}
-
-// WithPlaylistEpisodeCache sets the episode cache for playlists. Useful for testing.
-func WithPlaylistEpisodeCache(c PlaylistEpisodeCache) func(*Plex) {
-	return func(p *Plex) {
-		p.playlistEpisodeCache = c
 	}
 }
 
@@ -112,44 +124,76 @@ const (
 	xmlHeader  string = "application/xml"
 )
 
-func (p *Plex) sendRequestXML(req *http.Request, v interface{}) error {
-	return p.sendRequestType(req, v, xmlHeader)
+func (p *Plex) sendRequestXML(req *http.Request, v any, cacheFor *time.Duration) error {
+	return p.sendRequestType(req, v, xmlHeader, cacheFor)
 }
 
-func (p *Plex) sendRequestJSON(req *http.Request, v interface{}) error {
-	return p.sendRequestType(req, v, jsonHeader)
+func (p *Plex) sendRequestJSON(req *http.Request, v any, cacheFor *time.Duration) error {
+	return p.sendRequestType(req, v, jsonHeader, cacheFor)
 }
 
-func (p *Plex) sendRequestType(req *http.Request, v interface{}, contentType string) error {
-	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("Accept", contentType)
-	p.preprocessReq(req)
+func (p *Plex) doReq(req *http.Request) ([]byte, error) {
 	res, err := p.client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer dclose(res.Body)
 
 	content, err := io.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return content, err
 	}
-
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
 		var errRes errorResponse
 		if err = json.NewDecoder(res.Body).Decode(&errRes); err == nil {
-			return errors.New(errRes.Message)
+			return nil, errors.New(errRes.Message)
 		}
-		return fmt.Errorf("unknown error, status code: %d", res.StatusCode)
+		return nil, fmt.Errorf("unknown error, status code: %d", res.StatusCode)
+	}
+	return content, nil
+}
+
+func makeCacheKey(prefix string, req http.Request) string {
+	return fmt.Sprintf("%v:%v", prefix, req.URL.String())
+}
+
+func (p *Plex) sendRequestType(req *http.Request, v any, contentType string, ttl *time.Duration) error {
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Accept", contentType)
+	p.preprocessReq(req)
+
+	var freshen bool
+	content := []byte{}
+	key := makeCacheKey("cache", *req)
+	if ttl == nil {
+		freshen = true
+	} else {
+		got, ok := p.cache.Get(key)
+		if !ok {
+			freshen = true
+		} else {
+			content = got.([]byte)
+		}
+	}
+
+	if freshen {
+		var err error
+		content, err = p.doReq(req)
+		if err != nil {
+			return err
+		}
+		if ttl != nil {
+			p.cache.Set(key, content, *ttl)
+		}
 	}
 
 	switch contentType {
 	case "application/xml":
-		if err = xml.NewDecoder(bytes.NewReader(content)).Decode(&v); err != nil && err != io.EOF {
+		if err := xml.NewDecoder(bytes.NewReader(content)).Decode(&v); err != nil && err != io.EOF {
 			return err
 		}
 	case "application/json":
-		if err = json.NewDecoder(bytes.NewReader(content)).Decode(&v); err != nil && err != io.EOF {
+		if err := json.NewDecoder(bytes.NewReader(content)).Decode(&v); err != nil && err != io.EOF {
 			return err
 		}
 	default:
@@ -177,3 +221,20 @@ func toPTR[V any](v V) *V {
 	return &v
 }
 */
+
+func (p *Plex) episodeID(show ShowTitle, season SeasonNumber, episode EpisodeNumber) (int, error) {
+	shows, err := p.Shows.Match(show)
+	if err != nil {
+		return 0, err
+	}
+	episodes, err := p.Shows.Episodes(shows)
+	if err != nil {
+		return 0, err
+	}
+	for _, item := range episodes {
+		if (item.Season == season) && (item.Episode == episode) {
+			return item.ID, nil
+		}
+	}
+	return 0, errors.New("episode key not found")
+}

@@ -22,7 +22,7 @@ var getPlaylistCmd = &cobra.Command{
 		}
 		ret := make([]*goflex.Playlist, len(args))
 		for idx, item := range args {
-			got, err := p.Playlists.GetWithName(item)
+			got, err := p.Playlists.GetWithName(goflex.PlaylistTitle(item))
 			if err != nil {
 				return err
 			}

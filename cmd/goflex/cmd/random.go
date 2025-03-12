@@ -21,7 +21,7 @@ var randomCmd = &cobra.Command{
 		p := newPlex()
 
 		// Inspect the playlist, create it if it doesn't exist
-		playlist, created, err := p.Playlists.GetOrCreate(args[0], goflex.VideoPlaylist, false)
+		playlist, created, err := p.Playlists.GetOrCreate(goflex.PlaylistTitle(args[0]), goflex.VideoPlaylist, false)
 		if err != nil {
 			return err
 		}
@@ -34,20 +34,21 @@ var randomCmd = &cobra.Command{
 			refillReason = "newly created playlist"
 		} else {
 			var err error
-			playlistEpisodes, err = playlist.Episodes()
+			// playlistEpisodes, err = playlist.Episodes()
+			playlistEpisodes, err = p.Playlists.Episodes(*playlist)
 			if err != nil {
 				return err
 			}
 			slog.Debug("found existing playlist", "count", len(playlistEpisodes))
 		}
-		showTitle := mustGetCmd[string](*cmd, "title")
+		showTitle := goflex.ShowTitle(mustGetCmd[string](*cmd, "title"))
 
 		exists, err := p.Shows.Exists(showTitle)
 		if err != nil {
 			return err
 		}
 		if !exists {
-			return errors.New("show does not exist: " + showTitle)
+			return errors.New("show does not exist: " + string(showTitle))
 		}
 
 		// Get viewed
@@ -89,7 +90,8 @@ var randomCmd = &cobra.Command{
 				return err
 			}
 
-			allEpisodes, err := shows.EpisodesWithFilter(goflex.EpisodeFilter{
+			// allEpisodes, err := shows.EpisodesWithFilter(goflex.EpisodeFilter{
+			allEpisodes, err := p.Shows.EpisodesWithFilter(shows, goflex.EpisodeFilter{
 				LatestSeason:   mustGetCmd[int](*cmd, "latest-season"),
 				EarliestSeason: mustGetCmd[int](*cmd, "earliest-season"),
 			})

@@ -13,12 +13,13 @@ var analyzeCmd = &cobra.Command{
 	Short: "Analyze something from the plex server",
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		p := newPlex()
-		shows, err := p.Shows.StrictMatch(mustGetCmd[string](*cmd, "title"))
+		shows, err := p.Shows.StrictMatch(goflex.ShowTitle(mustGetCmd[string](*cmd, "title")))
 		if err != nil {
 			return err
 		}
 
-		allEpisodes, err := shows.EpisodesWithFilter(goflex.EpisodeFilter{
+		// allEpisodes, err := shows.EpisodesWithFilter(goflex.EpisodeFilter{
+		allEpisodes, err := p.Shows.EpisodesWithFilter(shows, goflex.EpisodeFilter{
 			LatestSeason:   mustGetCmd[int](*cmd, "latest-season"),
 			EarliestSeason: mustGetCmd[int](*cmd, "earliest-season"),
 		})

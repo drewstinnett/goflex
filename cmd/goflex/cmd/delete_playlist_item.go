@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"strconv"
 
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -23,12 +24,12 @@ var deletePlaylistItemCmd = &cobra.Command{
 		}
 		p := newPlex()
 
-		pl, err := p.Playlists.GetWithName(args[0])
+		pl, err := p.Playlists.GetWithName(goflex.PlaylistTitle(args[0]))
 		if err != nil {
 			return err
 		}
 		slog.Info("Removing item from playlist", "playlist", args[0], "show", args[0], "season", season, "episode", episode)
-		if err := p.Playlists.DeleteEpisode(pl.Title, args[1], season, episode); err != nil {
+		if err := p.Playlists.DeleteEpisode(pl.Title, goflex.ShowTitle(args[1]), goflex.SeasonNumber(season), goflex.EpisodeNumber(episode)); err != nil {
 			return err
 		}
 		return nil

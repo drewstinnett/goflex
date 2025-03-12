@@ -81,8 +81,8 @@ func TestMatchShows(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(got))
 	// 2 versions of the show because it's in multiple libraries
-	require.Equal(t, "American Dad!", got[0].Title)
-	require.Equal(t, "American Dad!", got[1].Title)
+	require.EqualValues(t, "American Dad!", got[0].Title)
+	require.EqualValues(t, "American Dad!", got[1].Title)
 }
 
 func TestShowExists(t *testing.T) {
@@ -136,8 +136,8 @@ func TestEpisodeSeasons(t *testing.T) {
 		{Title: "s03e01", Season: 3},
 	}
 	tests := map[string]struct {
-		givenStart int
-		givenEnd   int
+		givenStart SeasonNumber
+		givenEnd   SeasonNumber
 		expect     EpisodeList
 	}{
 		"start-and-end": {

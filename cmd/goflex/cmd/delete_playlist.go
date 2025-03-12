@@ -3,6 +3,7 @@ package cmd
 import (
 	"log/slog"
 
+	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,7 @@ var deletePlaylistCmd = &cobra.Command{
 	RunE: func(_ *cobra.Command, args []string) error {
 		p := newPlex()
 
-		pl, err := p.Playlists.GetWithName(args[0])
+		pl, err := p.Playlists.GetWithName(goflex.PlaylistTitle(args[0]))
 		if err != nil {
 			return err
 		}

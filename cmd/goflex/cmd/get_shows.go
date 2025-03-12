@@ -26,7 +26,7 @@ var getShowsCmd = &cobra.Command{
 				continue
 			}
 			slog.Info("shows in library", "library", lib.Title)
-			shows, err := lib.Shows()
+			shows, err := p.Library.Shows(*lib)
 			if err != nil {
 				return err
 			}

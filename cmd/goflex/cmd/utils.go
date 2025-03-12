@@ -62,6 +62,7 @@ func printEpisodes(episodes goflex.EpisodeList, short bool) {
 	}
 }
 
+/*
 func fromPTR[T any](ptr *T) T {
 	if ptr != nil {
 		return *ptr
@@ -69,3 +70,4 @@ func fromPTR[T any](ptr *T) T {
 	var zero T
 	return zero
 }
+*/
