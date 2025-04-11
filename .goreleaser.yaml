@@ -48,3 +48,5 @@ nfpms:
       - deb
       - rpm
       - apk
+furies:
+  - account: "{{ .Env.FURY_ACCOUNT }}"
