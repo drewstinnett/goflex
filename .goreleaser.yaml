@@ -51,7 +51,8 @@ nfpms:
 uploads:
   - name: fury
     target: https://push.fury.io/drewstinnett/
-    username: "{{ .Env.FURY_TOKEN }}"
+    custom_headers:
+      Authorization: "Bearer {{ .Env.FURY_TOKEN }}"
     method: POST
     ids:
       - packages
