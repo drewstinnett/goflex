@@ -42,11 +42,14 @@ release:
 
     Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
 nfpms:
-  - id: goflex
+  - id: packages
     maintainer: "Drew Stinnett <drew@drewlink.com>"
     formats:
       - deb
       - rpm
       - apk
-furies:
-  - account: "{{ .Env.FURY_ACCOUNT }}"
+uploads:
+  - name: fury
+    target: https://{{ .Env.FURY_TOKEN }}@push.fury.io/drewstinnett/
+    ids:
+      - packages
