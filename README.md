@@ -3,6 +3,7 @@
   <h3 align="center">GoFlex</h3>
   <p align="center">Flex for Plex!</p>
 </p>
+
 # Go Flex for Plex
 
 This is a library for interacting with the Plex API. It started as a little
