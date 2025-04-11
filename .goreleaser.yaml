@@ -54,7 +54,7 @@ uploads:
     ## This removes the package name from the url
     custom_artifact_name: true
     custom_headers:
-      Authorization: "Bearer {{ .Env.FURY_TOKEN }"
+      Authorization: "Bearer {{ .Env.FURY_TOKEN }}"
     method: POST
     ids:
       - packages
