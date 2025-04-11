@@ -37,7 +37,7 @@ func (svc *ServerServiceOp) Search(q string) (*Search, error) {
 // Accounts returns accounts
 func (svc *ServerServiceOp) Accounts() (*Accounts, error) {
 	var ret accountsResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/accounts", svc.p.baseURL)), &ret, toPTR(time.Hour*6)); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/accounts", svc.p.baseURL)), &ret, &cacheConfig{prefix: "accounts", ttl: time.Hour * 6}); err != nil {
 		return nil, err
 	}
 	return &ret.Accounts, nil
@@ -46,7 +46,7 @@ func (svc *ServerServiceOp) Accounts() (*Accounts, error) {
 // Servers returns a list of plex servers
 func (svc *ServerServiceOp) Servers() (*Servers, error) {
 	var ret serversResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/servers", svc.p.baseURL)), &ret, toPTR(time.Hour*6)); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/servers", svc.p.baseURL)), &ret, &cacheConfig{prefix: "servers", ttl: time.Hour * 6}); err != nil {
 		return nil, err
 	}
 	return &ret.Servers, nil
@@ -55,7 +55,7 @@ func (svc *ServerServiceOp) Servers() (*Servers, error) {
 // Capabilities returns the capabilities of a host
 func (svc *ServerServiceOp) Capabilities() (*Capabilities, error) {
 	var ret capabilitiesResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/", svc.p.baseURL)), &ret, toPTR(time.Hour*6)); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/", svc.p.baseURL)), &ret, &cacheConfig{prefix: "capabilities", ttl: time.Hour * 6}); err != nil {
 		return nil, err
 	}
 	return &ret.Capabilities, nil
@@ -64,7 +64,7 @@ func (svc *ServerServiceOp) Capabilities() (*Capabilities, error) {
 // Preferences returns server preferences
 func (svc *ServerServiceOp) Preferences() (*Preferences, error) {
 	var ret prefsResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/:/prefs", svc.p.baseURL)), &ret, toPTR(time.Hour*1)); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/:/prefs", svc.p.baseURL)), &ret, &cacheConfig{prefix: "prefs", ttl: time.Hour * 1}); err != nil {
 		return nil, err
 	}
 	return &ret.Preferences, nil

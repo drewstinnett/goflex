@@ -6,13 +6,17 @@ package cmd
 import (
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/charmbracelet/log"
 	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
-var verbose bool
+var (
+	verbose    bool
+	gcInterval *time.Duration = toPTR(time.Minute * 10)
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -33,6 +37,7 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose logging")
+	rootCmd.PersistentFlags().DurationVar(gcInterval, "gc-interval", time.Duration(time.Minute*5), "garbage collection interval")
 	cobra.OnInitialize(initConfig)
 }
 
@@ -53,6 +58,7 @@ func newPlex() *goflex.Plex {
 	opts := []func(*goflex.Plex){
 		goflex.WithBaseURL(os.Getenv("PLEX_URL")),
 		goflex.WithToken(os.Getenv("PLEX_TOKEN")),
+		goflex.WithGCInterval(gcInterval),
 	}
 	if os.Getenv("DEBUG_CURL") != "" {
 		opts = append(opts, goflex.WithPrintCurl())

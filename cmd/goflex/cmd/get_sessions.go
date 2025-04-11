@@ -17,7 +17,7 @@ func stringsToShowTitles(s []string) []goflex.ShowTitle {
 
 // getSessionsCmd represents the random command
 var getSessionsCmd = &cobra.Command{
-	Use:   "sessions",
+	Use:   "sessions [SHOW ...[SHOW]]",
 	Short: "Get session information",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p := newPlex()

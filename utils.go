@@ -37,3 +37,7 @@ func fromPTR[T any](ptr *T) T {
 	var zero T
 	return zero
 }
+
+func daysToDuration(days int) time.Duration {
+	return time.Duration(days) * time.Hour * 24
+}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"log/slog"
+	"time"
 
 	goflex "github.com/drewstinnett/go-flex"
 	"github.com/drewstinnett/gout/v2"
@@ -14,39 +15,39 @@ var getShowsCmd = &cobra.Command{
 	Short:   "Get shows",
 	Aliases: []string{"show"},
 	Args:    cobra.ExactArgs(0),
-	RunE: func(_ *cobra.Command, _ []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		p := newPlex()
 
 		libs, err := p.Library.List()
 		if err != nil {
 			return err
 		}
-		for _, lib := range libs {
-			if lib.Type != goflex.ShowType {
-				continue
-			}
-			slog.Info("shows in library", "library", lib.Title)
-			shows, err := p.Library.Shows(*lib)
-			if err != nil {
-				return err
-			}
-			gout.MustPrint(shows)
+		wd := mustGetCmd[time.Duration](*cmd, "watch-duration")
+		var watch bool
+		if wd > 0 {
+			watch = true
 		}
-		return nil
+		for {
+			for _, lib := range libs {
+				if lib.Type != goflex.ShowType {
+					continue
+				}
+				slog.Info("shows in library", "library", lib.Title)
+				shows, err := p.Library.Shows(*lib)
+				if err != nil {
+					return err
+				}
+				gout.MustPrint(shows)
+			}
+			if !watch {
+				return nil
+			}
+			time.Sleep(wd)
+		}
 	},
 }
 
 func init() {
+	getShowsCmd.PersistentFlags().DurationP("watch-duration", "w", 0, "get seasons again every duration")
 	getCmd.AddCommand(getShowsCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getShowsCmd.PersistentFlags().String("library", "TV Shows", "Library of the TV Show we are randomizing")
-	// getShowsCmd.PersistentFlags().String("title", "American Dad!", "Name of the show to include in this playlist")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getShowsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

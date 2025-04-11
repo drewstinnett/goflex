@@ -20,8 +20,8 @@ var analyzeCmd = &cobra.Command{
 
 		// allEpisodes, err := shows.EpisodesWithFilter(goflex.EpisodeFilter{
 		allEpisodes, err := p.Shows.EpisodesWithFilter(shows, goflex.EpisodeFilter{
-			LatestSeason:   mustGetCmd[int](*cmd, "latest-season"),
-			EarliestSeason: mustGetCmd[int](*cmd, "earliest-season"),
+			LatestSeason:   goflex.SeasonNumber(mustGetCmd[int](*cmd, "latest-season")),
+			EarliestSeason: goflex.SeasonNumber(mustGetCmd[int](*cmd, "earliest-season")),
 		})
 		if err != nil {
 			return err

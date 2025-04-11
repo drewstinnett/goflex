@@ -13,7 +13,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"sync"
 	"time"
 
 	"moul.io/http2curl/v2"
@@ -27,6 +26,7 @@ type Plex struct {
 	token          string
 	userAgent      string
 	printCurl      bool
+	maxSleep       time.Duration
 	client         *http.Client
 	cache          cache
 	Playlists      PlaylistService
@@ -38,15 +38,13 @@ type Plex struct {
 	Authentication AuthenticationService
 }
 
-type cache struct {
-	db sync.Map
-}
-
 // New uses functional options for a new plex
 func New(opts ...func(*Plex)) (*Plex, error) {
 	p := &Plex{
 		client:    http.DefaultClient,
 		userAgent: "goflex " + version,
+		cache:     *NewCache(),
+		maxSleep:  60 * time.Minute,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -63,22 +61,16 @@ func New(opts ...func(*Plex)) (*Plex, error) {
 	p.Media = &MediaServiceOp{p: p}
 	p.Server = &ServerServiceOp{p: p}
 	p.Shows = &ShowServiceOp{p: p}
-	// p.Shows = &ShowServiceOp{p: p}
 	p.Library = &LibraryServiceOp{p: p}
 	p.Authentication = &AuthenticationServiceOp{p: p}
-	p.cache = cache{}
 	return p, nil
 }
 
-func (c *cache) Get(key string) (any, bool) {
-	return c.db.Load(key)
-}
-
-func (c *cache) Set(key string, value any, ttl time.Duration) {
-	c.db.Store(key, value)
-	time.AfterFunc(ttl, func() {
-		c.db.Delete(key)
-	})
+// WithGCInterval sets the garbage collection interval
+func WithGCInterval(i *time.Duration) func(*Plex) {
+	return func(p *Plex) {
+		p.cache = *NewCacheWithGC(fromPTR(i))
+	}
 }
 
 // WithHTTPClient sets the http client on a new Plex
@@ -124,12 +116,12 @@ const (
 	xmlHeader  string = "application/xml"
 )
 
-func (p *Plex) sendRequestXML(req *http.Request, v any, cacheFor *time.Duration) error {
-	return p.sendRequestType(req, v, xmlHeader, cacheFor)
+func (p *Plex) sendRequestXML(req *http.Request, v any, cc *cacheConfig) error {
+	return p.sendRequestType(req, v, xmlHeader, cc)
 }
 
-func (p *Plex) sendRequestJSON(req *http.Request, v any, cacheFor *time.Duration) error {
-	return p.sendRequestType(req, v, jsonHeader, cacheFor)
+func (p *Plex) sendRequestJSON(req *http.Request, v any, cc *cacheConfig) error {
+	return p.sendRequestType(req, v, jsonHeader, cc)
 }
 
 func (p *Plex) doReq(req *http.Request) ([]byte, error) {
@@ -153,25 +145,26 @@ func (p *Plex) doReq(req *http.Request) ([]byte, error) {
 	return content, nil
 }
 
-func makeCacheKey(prefix string, req http.Request) string {
-	return fmt.Sprintf("%v:%v", prefix, req.URL.String())
-}
-
-func (p *Plex) sendRequestType(req *http.Request, v any, contentType string, ttl *time.Duration) error {
+func (p *Plex) sendRequestType(req *http.Request, v any, contentType string, cc *cacheConfig) error {
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", contentType)
 	p.preprocessReq(req)
 
 	var freshen bool
 	content := []byte{}
-	key := makeCacheKey("cache", *req)
-	if ttl == nil {
+	var key string
+	if cc != nil {
+		key = makeCacheKey(cc.prefix, *req)
+	}
+	if (cc == nil) || (cc.ttl == 0) {
 		freshen = true
 	} else {
 		got, ok := p.cache.Get(key)
 		if !ok {
+			slog.Debug("cache not found, fetching fresh", "key", key)
 			freshen = true
 		} else {
+			slog.Debug("using cache", "key", key)
 			content = got.([]byte)
 		}
 	}
@@ -182,8 +175,8 @@ func (p *Plex) sendRequestType(req *http.Request, v any, contentType string, ttl
 		if err != nil {
 			return err
 		}
-		if ttl != nil {
-			p.cache.Set(key, content, *ttl)
+		if (cc != nil) && (cc.ttl != 0) {
+			p.cache.Set(key, content, cc.ttl)
 		}
 	}
 
@@ -215,12 +208,6 @@ func dclose(c io.Closer) {
 		slog.Error("error closing item", "error", err)
 	}
 }
-
-/*
-func toPTR[V any](v V) *V {
-	return &v
-}
-*/
 
 func (p *Plex) episodeID(show ShowTitle, season SeasonNumber, episode EpisodeNumber) (int, error) {
 	shows, err := p.Shows.Match(show)

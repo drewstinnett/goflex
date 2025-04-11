@@ -19,6 +19,7 @@ type Episode struct {
 	Episode        EpisodeNumber
 	Watched        *time.Time
 	ViewCount      int
+	Duration       time.Duration
 }
 
 // EpisodeNumber is the number of an episode
@@ -45,9 +46,9 @@ func (e EpisodeMap) List() EpisodeList {
 
 // EpisodeFilter defines the filters the returned episodes
 type EpisodeFilter struct {
-	Show           ShowTitle
-	EarliestSeason int
-	LatestSeason   int
+	Show           ShowTitle    `yaml:"show"`
+	EarliestSeason SeasonNumber `yaml:"earliest_season"`
+	LatestSeason   SeasonNumber `yaml:"latest_season"`
 }
 
 // EpisodeList is multiple Episodes
@@ -77,11 +78,6 @@ func (l EpisodeList) LatestWatched() *Episode {
 		}
 	}
 	return ret
-}
-
-// Runtime returns the total runtime of all episodes
-func (l EpisodeList) Runtime() time.Duration {
-	return 0
 }
 
 // Len returns the length of the list, to satisfy the sortable interface
@@ -146,6 +142,7 @@ func (l *EpisodeList) Subtract(s EpisodeList) (EpisodeList, EpisodeList) {
 	return r, removed
 }
 
+/*
 // ids returns a list of ids for the episodes
 func (l EpisodeList) ids() []int {
 	ret := make([]int, len(l))
@@ -154,6 +151,7 @@ func (l EpisodeList) ids() []int {
 	}
 	return ret
 }
+*/
 
 // slugs returns a list of slugs for the episodes
 func (l EpisodeList) slugs() []string {

@@ -28,9 +28,7 @@ var getPlaylistCmd = &cobra.Command{
 			}
 			ret[idx] = got
 		}
-		gout.MustPrint(ret)
-
-		return nil
+		return gout.Print(ret)
 	},
 }
 

@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"log/slog"
+	"time"
 
 	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
@@ -24,29 +25,39 @@ var getEpisodesCmd = &cobra.Command{
 			return errors.New("show not found: " + args[0])
 		}
 		short := mustGetCmd[bool](*cmd, "short")
-		for _, show := range shows {
-			slog.Info("show", "title", show.Title)
-			seasons, err := p.Shows.SeasonsSorted(*show)
-			if err != nil {
-				return err
-			}
-			for _, season := range seasons {
-				slog.Debug("season", "show", show.Title, "index", season.Index, "key", season.ID)
-				// episodesM, err := season.Episodes()
-				episodesM, err := p.Shows.SeasonEpisodes(season)
+		wd := mustGetCmd[time.Duration](*cmd, "watch-duration")
+		var watch bool
+		if wd > 0 {
+			watch = true
+		}
+		for {
+			for _, show := range shows {
+				slog.Info("show", "title", show.Title)
+				seasons, err := p.Shows.SeasonsSorted(*show)
 				if err != nil {
 					return err
 				}
-				printEpisodes(episodesM.List(), short)
+				for _, season := range seasons {
+					slog.Debug("season", "show", show.Title, "index", season.Index, "key", season.ID)
+					// episodesM, err := season.Episodes()
+					episodesM, err := p.Shows.SeasonEpisodes(season)
+					if err != nil {
+						return err
+					}
+					printEpisodes(episodesM.List(), short)
 
+				}
 			}
+			if !watch {
+				return nil
+			}
+			time.Sleep(wd)
 		}
-
-		return nil
 	},
 }
 
 func init() {
-	getCmd.AddCommand(getEpisodesCmd)
+	getEpisodesCmd.PersistentFlags().DurationP("watch-duration", "w", 0, "get seasons again every duration")
 	getEpisodesCmd.PersistentFlags().BoolP("short", "s", false, "Show short version of the episode (Name S00E00)")
+	getCmd.AddCommand(getEpisodesCmd)
 }

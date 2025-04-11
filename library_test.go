@@ -35,4 +35,9 @@ func TestLibraries(t *testing.T) {
 	_, err = p.Library.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, hits)
+
+	p.cache.DeletePrefix("library-list")
+	_, err = p.Library.List()
+	require.NoError(t, err)
+	require.Equal(t, 2, hits)
 }

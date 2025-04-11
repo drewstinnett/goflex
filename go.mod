@@ -8,6 +8,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
+	gopkg.in/yaml.v2 v2.2.2
 	moul.io/http2curl/v2 v2.3.0
 )
 

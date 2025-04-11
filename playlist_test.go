@@ -1,87 +1,128 @@
 package goflex
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateCache(t *testing.T) {
-	/*
-		pl := Playlist{}
-		require.NotPanics(t, func() {
-			pl.updateEpisodeCache(&EpisodeList{
-				{Show: "foo", Season: 1, Episode: 1, PlaylistItemID: 5},
-				{Show: "foo", Season: 1, Episode: 2, PlaylistItemID: 6},
-			})
-		})
-		require.Equal(t, PlaylistEpisodeCache{
-			"foo": {
-				1: {
-					1: 5,
-					2: 6,
+func TestPlaylistList(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch url := r.URL.Path; {
+		case strings.HasSuffix(url, "/playlists"):
+			expected, err := os.ReadFile("testdata/playlists.xml")
+			require.NoError(t, err)
+			fmt.Fprint(w, string(expected))
+		case strings.HasSuffix(url, "/items"):
+			expected, err := os.ReadFile("testdata/playlist-items.xml")
+			require.NoError(t, err)
+			fmt.Fprint(w, string(expected))
+		default:
+			panic("how did we get here? url: " + r.URL.Path)
+		}
+	}))
+	// srv := srvFile(t, "testdata/playlists.xml")
+	defer srv.Close()
+
+	c, err := New(WithBaseURL(srv.URL), WithToken("test-token"))
+	require.NoError(t, err)
+
+	got, err := c.Playlists.List()
+	require.NoError(t, err)
+
+	require.Len(t, got, 7)
+
+	ij, err := c.Playlists.GetWithName("Impractical Jokers (Randomized)")
+	require.NoError(t, err)
+
+	episodes, err := c.Playlists.Episodes(*ij)
+	require.NoError(t, err)
+	require.Len(t, episodes, 120)
+
+	// fmt.Fprintf(os.Stderr, "ij: %v\n", episodes)
+
+	eid, err := c.Playlists.EpisodeID(*ij, "Impractical Jokers", 8, 26)
+	require.NoError(t, err)
+	require.Equal(t, 32074, eid)
+}
+
+func TestNewRandomizeRequest(t *testing.T) {
+	tests := []struct {
+		name     string
+		playlist PlaylistTitle
+		series   []RandomizeSeries
+		opts     []RandomizeRequestOpt
+		wantErr  error
+		wantReq  *RandomizeRequest
+	}{
+		{
+			name:     "Valid request",
+			playlist: "MyPlaylist",
+			series: []RandomizeSeries{
+				{
+					Filter: EpisodeFilter{
+						Show: "Show1",
+					},
+					LookbackDays: 7,
+					// RefillAt: 10,
 				},
 			},
-		}, pl.episodeCache)
-
-			k, err := pl.episodeKey("foo", 1, 2)
-			require.NoError(t, err)
-			require.Equal(t, 6, k)
-	*/
-}
-
-/*
-func TestNewRandomizeRequest(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		t.Errorf("got request I shouldn't have: %v", req.URL)
-	}))
-	defer svr.Close()
-
-	p, err := New(
-		WithBaseURL(svr.URL),
-		WithToken("test-token"),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, p)
-	// p.Playlists.episodeCache = nil
-	p.Playlists.InitCache(map[string]*Playlist{
-		"test-playlist": {
-			Title: "test-playlist",
-			ID:    1,
+			opts:    nil,
+			wantErr: nil,
+			wantReq: &RandomizeRequest{
+				Playlist: "MyPlaylist",
+				Series: []RandomizeSeries{
+					{
+						Filter: EpisodeFilter{
+							Show: "Show1",
+						},
+						LookbackDays: 7,
+						// RefillAt: 10,
+					},
+				},
+				RefillAt: 5,
+			},
 		},
-	})
-	p.Playlists.InitEpisodeCache(map[string]EpisodeList{
-		"show1": {
-			{Show: "show1", Season: 1, Episode: 1},
-			{Show: "show1", Season: 1, Episode: 2},
-			{Show: "show1", Season: 1, Episode: 3},
-			{Show: "show1", Season: 1, Episode: 4},
-			{Show: "show1", Season: 1, Episode: 5},
-			{Show: "show1", Season: 1, Episode: 6},
-			{Show: "show1", Season: 1, Episode: 7},
-			{Show: "show1", Season: 1, Episode: 8},
-		},
-	})
-	p.Sessions.InitHistory(EpisodeList{
-		Episode{
-			Show: "show1", Season: 1, Episode: 1, Watched: daysAgo(3),
-		},
-	})
-
-	r, err := NewRandomizeRequest("test-playlist", []RandomizeSeries{
 		{
-			Filter:   EpisodeFilter{Show: "show1"},
-			Lookback: toPTR(time.Hour * 24 * 30),
-			RefillAt: 1,
+			name:     "Empty playlist",
+			playlist: "",
+			series: []RandomizeSeries{
+				{
+					Filter: EpisodeFilter{
+						Show: "Show1",
+					},
+				},
+			},
+			opts:    nil,
+			wantErr: errors.New("playlist must not be empty"),
+			wantReq: nil,
 		},
-	})
-	require.NoError(t, err)
-	require.NotNil(t, r)
+		{
+			name:     "Empty series",
+			playlist: "MyPlaylist",
+			series:   []RandomizeSeries{},
+			opts:     nil,
+			wantErr:  errors.New("series muset not be empty"),
+			wantReq:  nil,
+		},
+	}
 
-	got, err := p.Playlists.Randomize(*r)
-	require.NoError(t, err)
-	require.NotNil(t, got)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := NewRandomizeRequest(tt.playlist, tt.series, tt.opts...)
+			if tt.wantErr != nil {
+				assert.EqualError(t, err, tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantReq, req)
+			}
+		})
+	}
 }
-
-func daysAgo(d int) *time.Time {
-	return toPTR(time.Now().Add(-time.Hour * 24 * time.Duration(d)))
-}
-*/

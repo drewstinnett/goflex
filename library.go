@@ -22,7 +22,7 @@ type LibraryServiceOp struct {
 // List returns a list of libraries on the server
 func (svc *LibraryServiceOp) List() (LibraryMap, error) {
 	var lr LibraryResponse
-	if err := svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/library/sections/", svc.p.baseURL)), &lr, toPTR(time.Minute*60)); err != nil {
+	if err := svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/library/sections/", svc.p.baseURL)), &lr, &cacheConfig{prefix: "library-list", ttl: time.Minute * 60}); err != nil {
 		return nil, err
 	}
 	ret := LibraryMap{}
@@ -103,7 +103,7 @@ func (svc *LibraryServiceOp) Shows(l Library) (ShowMap, error) {
 		return nil, err
 	}
 	var sr ShowsResponse
-	if err := svc.p.sendRequestXML(req, &sr, toPTR(time.Minute*5)); err != nil {
+	if err := svc.p.sendRequestXML(req, &sr, &cacheConfig{prefix: "shows", ttl: time.Minute * 5}); err != nil {
 		return nil, err
 	}
 	ret := ShowMap{}

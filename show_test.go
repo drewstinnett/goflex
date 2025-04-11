@@ -27,6 +27,18 @@ func TestSortEpisodes(t *testing.T) {
 }
 
 func TestShowSeasons(t *testing.T) {
+	/*
+		svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+
+			expected := SeasonMap{
+				1: &Season{ID: 1, Index: 1},
+				2: &Season{ID: 2, Index: 1},
+			}
+			expectedB, err := json.Marshal(expected)
+			require.NoError(t, err)
+			fmt.Fprint(w, expectedB)
+		}))
+	*/
 	svr := srvFile(t, "testdata/seasons.json")
 	defer svr.Close()
 
@@ -36,7 +48,7 @@ func TestShowSeasons(t *testing.T) {
 		WithToken("test-token"),
 	)
 	require.NoError(t, err)
-	seasons, err := p.Shows.Seasons(Show{ID: 5})
+	seasons, err := p.Shows.Seasons(Show{ID: 2, Title: "Fake Show"})
 	require.NoError(t, err)
 	require.NotNil(t, seasons)
 	require.Equal(t, 21, len(*seasons))

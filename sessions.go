@@ -1,7 +1,9 @@
 package goflex
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
@@ -36,7 +38,13 @@ func (s SessionServiceOp) All(since *time.Time, shows ...ShowTitle) (EpisodeList
 
 func (svc *SessionServiceOp) historyEpisodes() (EpisodeList, error) {
 	var res HistorySessionResponse
-	if err := svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/status/sessions/history/all", svc.p.baseURL)), &res, toPTR(time.Minute*10)); err != nil {
+	if err := svc.p.sendRequestXML(mustNewRequest("GET",
+		fmt.Sprintf("%v/status/sessions/history/all", svc.p.baseURL)),
+		&res,
+		&cacheConfig{
+			prefix: "history-episodes",
+			ttl:    time.Minute * 10,
+		}); err != nil {
 		return nil, err
 	}
 	ret := EpisodeList{}
@@ -62,11 +70,6 @@ func (svc *SessionServiceOp) historyEpisodes() (EpisodeList, error) {
 			return nil, err
 		}
 
-		// Skip items we have already added
-		if slices.Contains(ret.ids(), id) {
-			continue
-		}
-
 		ret = append(ret, Episode{
 			ID:      id,
 			Title:   item.Title,
@@ -86,12 +89,24 @@ func (svc *SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...ShowTitl
 	if err != nil {
 		return nil, err
 	}
+	if since == nil {
+		return nil, errors.New("since cannot be nil")
+	}
 	ret := EpisodeList{}
 	for _, item := range items {
-		if (len(shows) > 0) && !slices.Contains(shows, item.Show) {
+		// Skip if we are listing shows, and this is not one of those shows
+		switch {
+		case (len(shows) > 0) && !slices.Contains(shows, item.Show):
 			continue
+		case item.Watched == nil:
+			continue
+		case item.Watched.Before(*since):
+			slog.Debug("skipping because of since", "item", item, "since", *since)
+			continue
+		default:
+			slog.Debug("adding item to ret", "item", item)
+			ret = append(ret, item)
 		}
-		ret = append(ret, item)
 	}
 
 	return ret, nil
@@ -104,7 +119,7 @@ func (s SessionServiceOp) ActiveEpisodes(shows ...ShowTitle) (EpisodeList, error
 		return nil, err
 	}
 	var res ActiveSessionsResponse
-	if err := s.p.sendRequestXML(req, &res, toPTR(time.Minute*5)); err != nil {
+	if err := s.p.sendRequestXML(req, &res, &cacheConfig{prefix: "active-episodes", ttl: time.Minute * 5}); err != nil {
 		return nil, err
 	}
 	ret := EpisodeList{}

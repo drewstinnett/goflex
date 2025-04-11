@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -25,11 +26,11 @@ func TestHistorySession(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	got, err := p.Sessions.HistoryEpisodes(nil)
+	got, err := p.Sessions.HistoryEpisodes(toPTR(time.Now()))
 	require.NoError(t, err)
 	require.Equal(t, 92, len(got))
 
-	got, err = p.Sessions.HistoryEpisodes(nil, "American Dad!", "Impractical Jokers")
+	got, err = p.Sessions.HistoryEpisodes(toPTR(time.Now()), "American Dad!", "Impractical Jokers")
 	require.NoError(t, err)
 	require.Equal(t, 65, len(got))
 }
