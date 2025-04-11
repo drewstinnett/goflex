@@ -50,7 +50,8 @@ nfpms:
       - apk
 uploads:
   - name: fury
-    target: https://{{ .Env.FURY_TOKEN }}@push.fury.io/drewstinnett/
+    target: https://push.fury.io/drewstinnett/
+    username: "{{ .Env.FURY_TOKEN }}"
     method: POST
     ids:
       - packages
