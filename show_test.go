@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,10 +52,10 @@ func TestShowSeasons(t *testing.T) {
 	seasons, err := p.Shows.Seasons(Show{ID: 2, Title: "Fake Show"})
 	require.NoError(t, err)
 	require.NotNil(t, seasons)
-	require.Equal(t, 21, len(*seasons))
+	require.Len(t, *seasons, 21)
 	s := *seasons
-	require.Equal(t, s[1].Index, 1)
-	require.Equal(t, s[20].Index, 20)
+	assert.EqualValues(t, 1, s[1].Index)
+	assert.EqualValues(t, 20, s[20].Index)
 }
 
 func TestEpisodeMapList(t *testing.T) {
@@ -77,12 +78,12 @@ func TestMatchShows(t *testing.T) {
 		fmt.Fprintf(os.Stderr, "REQ: %+v\n", req)
 		if strings.HasSuffix(req.URL.String(), "/library/sections/") {
 			expected, err := os.ReadFile("./testdata/libraries.xml")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			fmt.Fprint(w, string(expected))
 			return
 		}
 		expected, err := os.ReadFile("./testdata/shows.xml")
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		fmt.Fprint(w, string(expected))
 	}))
 
@@ -91,7 +92,7 @@ func TestMatchShows(t *testing.T) {
 
 	got, err := p.Shows.Match("American Dad!")
 	require.NoError(t, err)
-	require.Equal(t, 2, len(got))
+	require.Len(t, got, 2)
 	// 2 versions of the show because it's in multiple libraries
 	require.EqualValues(t, "American Dad!", got[0].Title)
 	require.EqualValues(t, "American Dad!", got[1].Title)
@@ -102,12 +103,12 @@ func TestShowExists(t *testing.T) {
 		fmt.Fprintf(os.Stderr, "REQ: %+v\n", req)
 		if strings.HasSuffix(req.URL.String(), "/library/sections/") {
 			expected, err := os.ReadFile("./testdata/libraries.xml")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			fmt.Fprint(w, string(expected))
 			return
 		}
 		expected, err := os.ReadFile("./testdata/shows.xml")
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		fmt.Fprint(w, string(expected))
 	}))
 
@@ -115,11 +116,11 @@ func TestShowExists(t *testing.T) {
 	require.NoError(t, err)
 	got, err := p.Shows.Exists("never-exists")
 	require.NoError(t, err)
-	require.Equal(t, false, got)
+	require.False(t, got)
 
 	got, err = p.Shows.Exists("American Dad!")
 	require.NoError(t, err)
-	require.Equal(t, true, got)
+	require.True(t, got)
 }
 
 func TestSubtract(t *testing.T) {

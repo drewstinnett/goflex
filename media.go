@@ -1,6 +1,9 @@
 package goflex
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 // MediaService describes the media endpoints
 type MediaService interface {
@@ -12,19 +15,33 @@ type MediaService interface {
 
 // MediaServiceOp is the operator for the MediaService
 type MediaServiceOp struct {
-	p *Plex
+	p *Flex
 }
 
 // MarkWatched marks a piece of media as watched
 func (svc *MediaServiceOp) MarkWatched(key int) error {
 	var ret struct{}
-	return svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/:/scrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key)), &ret, nil)
+	return svc.p.sendRequestXML(
+		mustNewRequest(
+			http.MethodGet,
+			fmt.Sprintf("%v/:/scrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key),
+		),
+		&ret,
+		nil,
+	)
 }
 
 // MarkUnWatched marks a piece of media as watched
 func (svc *MediaServiceOp) MarkUnWatched(key int) error {
 	var ret struct{}
-	return svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/:/unscrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key)), &ret, nil)
+	return svc.p.sendRequestXML(
+		mustNewRequest(
+			http.MethodGet,
+			fmt.Sprintf("%v/:/unscrobble?identifier=com.plexapp.plugins.library&key=%v", svc.p.baseURL, key),
+		),
+		&ret,
+		nil,
+	)
 }
 
 // MarkEpisodeWatched marks an episode as watched

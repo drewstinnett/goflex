@@ -37,7 +37,7 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose logging")
-	rootCmd.PersistentFlags().DurationVar(gcInterval, "gc-interval", time.Duration(time.Minute*5), "garbage collection interval")
+	rootCmd.PersistentFlags().DurationVar(gcInterval, "gc-interval", time.Minute*5, "garbage collection interval")
 	cobra.OnInitialize(initConfig)
 }
 
@@ -54,8 +54,8 @@ func initConfig() {
 	slog.SetDefault(logger)
 }
 
-func newPlex() *goflex.Plex {
-	opts := []func(*goflex.Plex){
+func newPlex() *goflex.Flex {
+	opts := []func(*goflex.Flex){
 		goflex.WithBaseURL(os.Getenv("PLEX_URL")),
 		goflex.WithToken(os.Getenv("PLEX_TOKEN")),
 		goflex.WithGCInterval(gcInterval),

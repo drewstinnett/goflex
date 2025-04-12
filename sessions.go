@@ -1,7 +1,6 @@
 package goflex
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,18 +11,18 @@ import (
 
 // SessionService describes how to interact with sessions
 type SessionService interface {
-	All(*time.Time, ...ShowTitle) (EpisodeList, error)
+	All(time.Time, ...ShowTitle) (EpisodeList, error)
 	ActiveEpisodes(...ShowTitle) (EpisodeList, error)
-	HistoryEpisodes(*time.Time, ...ShowTitle) (EpisodeList, error)
+	HistoryEpisodes(time.Time, ...ShowTitle) (EpisodeList, error)
 }
 
 // SessionServiceOp is the operator for the session service
 type SessionServiceOp struct {
-	p *Plex
+	p *Flex
 }
 
 // All returns active and history sessions
-func (s SessionServiceOp) All(since *time.Time, shows ...ShowTitle) (EpisodeList, error) {
+func (s SessionServiceOp) All(since time.Time, shows ...ShowTitle) (EpisodeList, error) {
 	ret, err := s.ActiveEpisodes(shows...)
 	if err != nil {
 		return nil, err
@@ -38,7 +37,7 @@ func (s SessionServiceOp) All(since *time.Time, shows ...ShowTitle) (EpisodeList
 
 func (svc *SessionServiceOp) historyEpisodes() (EpisodeList, error) {
 	var res HistorySessionResponse
-	if err := svc.p.sendRequestXML(mustNewRequest("GET",
+	if err := svc.p.sendRequestXML(mustNewRequest(http.MethodGet,
 		fmt.Sprintf("%v/status/sessions/history/all", svc.p.baseURL)),
 		&res,
 		&cacheConfig{
@@ -84,13 +83,10 @@ func (svc *SessionServiceOp) historyEpisodes() (EpisodeList, error) {
 
 // HistoryEpisodes returns all episodes in the history. Given a list of shows, only returns watched episodes of those shows.
 // Filter based on shows. Pass in a nil time.Time to return all times
-func (svc *SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...ShowTitle) (EpisodeList, error) {
+func (svc *SessionServiceOp) HistoryEpisodes(since time.Time, shows ...ShowTitle) (EpisodeList, error) {
 	items, err := svc.historyEpisodes()
 	if err != nil {
 		return nil, err
-	}
-	if since == nil {
-		return nil, errors.New("since cannot be nil")
 	}
 	ret := EpisodeList{}
 	for _, item := range items {
@@ -100,8 +96,8 @@ func (svc *SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...ShowTitl
 			continue
 		case item.Watched == nil:
 			continue
-		case item.Watched.Before(*since):
-			slog.Debug("skipping because of since", "item", item, "since", *since)
+		case item.Watched.Before(since):
+			slog.Debug("skipping because of since", "item", item, "since", since)
 			continue
 		default:
 			slog.Debug("adding item to ret", "item", item)
@@ -114,7 +110,7 @@ func (svc *SessionServiceOp) HistoryEpisodes(since *time.Time, shows ...ShowTitl
 
 // ActiveEpisodes returns the active episodes in the session
 func (s SessionServiceOp) ActiveEpisodes(shows ...ShowTitle) (EpisodeList, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/status/sessions", s.p.baseURL), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%v/status/sessions", s.p.baseURL), nil)
 	if err != nil {
 		return nil, err
 	}

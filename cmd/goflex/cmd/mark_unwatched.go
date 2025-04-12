@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	goflex "github.com/drewstinnett/go-flex"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +18,7 @@ var markUnWatchedCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		if err := p.Media.MarkEpisodeUnWatched(show, goflex.SeasonNumber(season), goflex.EpisodeNumber(episode)); err != nil {
+		if err := p.Media.MarkEpisodeUnWatched(show, season, episode); err != nil {
 			return err
 		}
 		fmt.Println("Marked episode as un-watched!")

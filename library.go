@@ -16,13 +16,13 @@ type LibraryService interface {
 
 // LibraryServiceOp implements the LibraryService
 type LibraryServiceOp struct {
-	p *Plex
+	p *Flex
 }
 
 // List returns a list of libraries on the server
 func (svc *LibraryServiceOp) List() (LibraryMap, error) {
 	var lr LibraryResponse
-	if err := svc.p.sendRequestXML(mustNewRequest("GET", fmt.Sprintf("%v/library/sections/", svc.p.baseURL)), &lr, &cacheConfig{prefix: "library-list", ttl: time.Minute * 60}); err != nil {
+	if err := svc.p.sendRequestXML(mustNewRequest(http.MethodGet, fmt.Sprintf("%v/library/sections/", svc.p.baseURL)), &lr, &cacheConfig{prefix: "library-list", ttl: time.Minute * 60}); err != nil {
 		return nil, err
 	}
 	ret := LibraryMap{}
@@ -98,7 +98,7 @@ func (svc *LibraryServiceOp) Shows(l Library) (ShowMap, error) {
 		return nil, errors.New("library is not a show library")
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%v/library/sections/%v/all", svc.p.baseURL, l.ID), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%v/library/sections/%v/all", svc.p.baseURL, l.ID), nil)
 	if err != nil {
 		return nil, err
 	}

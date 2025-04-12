@@ -26,7 +26,7 @@ var getSessionsCmd = &cobra.Command{
 		if mustGetCmd[bool](*cmd, "history") {
 			since := time.Now().Add(-time.Hour * 24 * time.Duration(mustGetCmd[int](*cmd, "lookback-days")))
 			var err error
-			if ret, err = p.Sessions.HistoryEpisodes(&since, stringsToShowTitles(args)...); err != nil {
+			if ret, err = p.Sessions.HistoryEpisodes(since, stringsToShowTitles(args)...); err != nil {
 				return err
 			}
 		} else {

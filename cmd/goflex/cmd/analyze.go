@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getCmd represents the random command
+// getCmd represents the random command.
 var analyzeCmd = &cobra.Command{
 	Use:   "analyze",
 	Short: "Analyze something from the plex server",
@@ -32,7 +32,7 @@ var analyzeCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("Took %v days to watch\n", int(duration.Hours()/24))
+		fmt.Printf("Took %v days to watch\n", int(duration.Hours()/goflex.DAY_HOURS))
 
 		return nil
 	},

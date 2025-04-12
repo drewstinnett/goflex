@@ -12,20 +12,20 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
-	"moul.io/http2curl/v2"
+	"github.com/drewstinnett/inspectareq"
 )
 
 const version string = "0.1.0"
 
-// Plex connects to our custom stuff
-type Plex struct {
+// Flex connects to our custom stuff
+type Flex struct {
 	baseURL        string
 	token          string
 	userAgent      string
 	printCurl      bool
+	logger         *slog.Logger
 	maxSleep       time.Duration
 	client         *http.Client
 	cache          cache
@@ -39,12 +39,13 @@ type Plex struct {
 }
 
 // New uses functional options for a new plex
-func New(opts ...func(*Plex)) (*Plex, error) {
-	p := &Plex{
+func New(opts ...func(*Flex)) (*Flex, error) {
+	p := &Flex{
 		client:    http.DefaultClient,
 		userAgent: "goflex " + version,
-		cache:     *NewCache(),
+		cache:     *newCache(),
 		maxSleep:  60 * time.Minute,
+		logger:    slog.Default(),
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -67,47 +68,45 @@ func New(opts ...func(*Plex)) (*Plex, error) {
 }
 
 // WithGCInterval sets the garbage collection interval
-func WithGCInterval(i *time.Duration) func(*Plex) {
-	return func(p *Plex) {
-		p.cache = *NewCacheWithGC(fromPTR(i))
+func WithGCInterval(i *time.Duration) func(*Flex) {
+	return func(p *Flex) {
+		p.cache = *newCacheWithGC(fromPTR(i))
 	}
 }
 
 // WithHTTPClient sets the http client on a new Plex
-func WithHTTPClient(c *http.Client) func(*Plex) {
-	return func(p *Plex) {
+func WithHTTPClient(c *http.Client) func(*Flex) {
+	return func(p *Flex) {
 		p.client = c
 	}
 }
 
 // WithBaseURL sets the base url for a plex client
-func WithBaseURL(s string) func(*Plex) {
-	return func(p *Plex) {
+func WithBaseURL(s string) func(*Flex) {
+	return func(p *Flex) {
 		p.baseURL = s
 	}
 }
 
 // WithToken sets the plex token for a client
-func WithToken(s string) func(*Plex) {
-	return func(p *Plex) {
+func WithToken(s string) func(*Flex) {
+	return func(p *Flex) {
 		p.token = s
 	}
 }
 
 // WithPrintCurl sets the curl debug printer to on
-func WithPrintCurl() func(*Plex) {
-	return func(p *Plex) {
+func WithPrintCurl() func(*Flex) {
+	return func(p *Flex) {
 		p.printCurl = true
 	}
 }
 
-func (p *Plex) preprocessReq(req *http.Request) {
+func (p *Flex) preprocessReq(req *http.Request) {
 	req.Header.Set("X-Plex-Token", p.token)
 	req.Header.Set("User-Agent", p.userAgent)
-
-	if p.printCurl {
-		command, _ := http2curl.GetCurlCommand(req)
-		fmt.Fprintf(os.Stderr, "%v\n", command)
+	if err := inspectareq.Print(req); err != nil {
+		p.logger.Warn("error printing request", "error", err)
 	}
 }
 
@@ -116,15 +115,15 @@ const (
 	xmlHeader  string = "application/xml"
 )
 
-func (p *Plex) sendRequestXML(req *http.Request, v any, cc *cacheConfig) error {
+func (p *Flex) sendRequestXML(req *http.Request, v any, cc *cacheConfig) error {
 	return p.sendRequestType(req, v, xmlHeader, cc)
 }
 
-func (p *Plex) sendRequestJSON(req *http.Request, v any, cc *cacheConfig) error {
+func (p *Flex) sendRequestJSON(req *http.Request, v any, cc *cacheConfig) error {
 	return p.sendRequestType(req, v, jsonHeader, cc)
 }
 
-func (p *Plex) doReq(req *http.Request) ([]byte, error) {
+func (p *Flex) doReq(req *http.Request) ([]byte, error) {
 	res, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -145,7 +144,7 @@ func (p *Plex) doReq(req *http.Request) ([]byte, error) {
 	return content, nil
 }
 
-func (p *Plex) sendRequestType(req *http.Request, v any, contentType string, cc *cacheConfig) error {
+func (p *Flex) sendRequestType(req *http.Request, v any, contentType string, cc *cacheConfig) error {
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", contentType)
 	p.preprocessReq(req)
@@ -209,7 +208,7 @@ func dclose(c io.Closer) {
 	}
 }
 
-func (p *Plex) episodeID(show ShowTitle, season SeasonNumber, episode EpisodeNumber) (int, error) {
+func (p *Flex) episodeID(show ShowTitle, season SeasonNumber, episode EpisodeNumber) (int, error) {
 	shows, err := p.Shows.Match(show)
 	if err != nil {
 		return 0, err
@@ -224,4 +223,8 @@ func (p *Plex) episodeID(show ShowTitle, season SeasonNumber, episode EpisodeNum
 		}
 	}
 	return 0, errors.New("episode key not found")
+}
+
+type FlexConfig struct {
+	RandomizePlaylists RandomizeRequestList `yaml:"randomize_playlists"`
 }

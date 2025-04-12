@@ -21,7 +21,7 @@ type cacheConfig struct {
 	ttl    time.Duration
 }
 
-// cache stores data with TTL handling
+// cache stores data with TTL handling.
 type cache struct {
 	mutex      sync.RWMutex
 	data       map[string]cacheItem
@@ -34,8 +34,8 @@ type cacheItem struct {
 	value any
 }
 
-// NewCache creates a new Cache
-func NewCache() *cache {
+// newCache creates a new Cache.
+func newCache() *cache {
 	return &cache{
 		data:       make(map[string]cacheItem),
 		expiries:   make(map[string]time.Time),
@@ -43,9 +43,9 @@ func NewCache() *cache {
 	}
 }
 
-// NewCacheWithGCI creates a new cache with a custom garbage collection interval
-func NewCacheWithGC(i time.Duration) *cache {
-	c := NewCache()
+// NewCacheWithGCI creates a new cache with a custom garbage collection interval.
+func newCacheWithGC(i time.Duration) *cache {
+	c := newCache()
 	c.gcInterval = i
 	return c
 }

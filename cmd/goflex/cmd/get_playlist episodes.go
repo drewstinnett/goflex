@@ -31,5 +31,6 @@ var getPlaylistEpisodesCmd = &cobra.Command{
 
 func init() {
 	getCmd.AddCommand(getPlaylistEpisodesCmd)
-	getPlaylistEpisodesCmd.PersistentFlags().BoolP("short", "s", false, "Show short version of the episode (Name S00E00)")
+	getPlaylistEpisodesCmd.PersistentFlags().
+		BoolP("short", "s", false, "Show short version of the episode (Name S00E00)")
 }

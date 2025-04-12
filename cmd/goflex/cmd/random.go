@@ -7,7 +7,7 @@ import (
 	goflex "github.com/drewstinnett/go-flex"
 	"github.com/drewstinnett/gout/v2"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // randomCmd represents the random command

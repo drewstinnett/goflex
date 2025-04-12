@@ -51,7 +51,10 @@ var randomCmdDeprecated = &cobra.Command{
 		}
 
 		// Get viewed
-		viewed, err := p.Sessions.HistoryEpisodes(toPTR(time.Now().Add(-time.Hour*24*time.Duration(mustGetCmd[int](*cmd, "lookback-days")))), showTitle)
+		viewed, err := p.Sessions.HistoryEpisodes(
+			time.Now().Add(-time.Hour*24*time.Duration(mustGetCmd[int](*cmd, "lookback-days"))),
+			showTitle,
+		)
 		if err != nil {
 			return err
 		}
@@ -68,7 +71,15 @@ var randomCmdDeprecated = &cobra.Command{
 
 		// Remove things we have seen
 		if len(removed) > 0 {
-			slog.Debug("New length of episodes after removing viewed", "remaining", len(remaining), "removed", len(removed), "original", len(playlistEpisodes))
+			slog.Debug(
+				"New length of episodes after removing viewed",
+				"remaining",
+				len(remaining),
+				"removed",
+				len(removed),
+				"original",
+				len(playlistEpisodes),
+			)
 			for _, item := range removed {
 				slog.Info("removing episode", "playlist", args[0], "episode", item.String())
 				if err := p.Playlists.DeleteEpisode(playlist.Title, item.Show, item.Season, item.Episode); err != nil {
@@ -104,7 +115,11 @@ var randomCmdDeprecated = &cobra.Command{
 			})
 
 			if len(unviewedEpisodes) < refillAt {
-				return fmt.Errorf("not enough unwatched episodes to refill. unwatched: %v, refill-at: %v", len(unviewedEpisodes), refillAt)
+				return fmt.Errorf(
+					"not enough unwatched episodes to refill. unwatched: %v, refill-at: %v",
+					len(unviewedEpisodes),
+					refillAt,
+				)
 			} else {
 				slog.Info("refilling playlist", "title", playlist.Title, "episodes", len(unviewedEpisodes), "reason", refillReason)
 				return p.Playlists.InsertEpisodes(playlist.ID, unviewedEpisodes)
@@ -117,7 +132,8 @@ var randomCmdDeprecated = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(randomCmdDeprecated)
 	randomCmdDeprecated.PersistentFlags().Int("lookback-days", 14, "number of days to look back at viewed history")
-	randomCmdDeprecated.PersistentFlags().Int("refill-at", 10, "refill the playlist when it reaches this remaining number of episodes")
+	randomCmdDeprecated.PersistentFlags().
+		Int("refill-at", 10, "refill the playlist when it reaches this remaining number of episodes")
 
 	if err := bindShowFilter(randomCmdDeprecated); err != nil {
 		panic(err)

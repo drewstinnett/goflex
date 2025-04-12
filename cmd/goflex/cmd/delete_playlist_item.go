@@ -28,7 +28,17 @@ var deletePlaylistItemCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		slog.Info("Removing item from playlist", "playlist", args[0], "show", args[0], "season", season, "episode", episode)
+		slog.Info(
+			"Removing item from playlist",
+			"playlist",
+			args[0],
+			"show",
+			args[0],
+			"season",
+			season,
+			"episode",
+			episode,
+		)
 		if err := p.Playlists.DeleteEpisode(pl.Title, goflex.ShowTitle(args[1]), goflex.SeasonNumber(season), goflex.EpisodeNumber(episode)); err != nil {
 			return err
 		}

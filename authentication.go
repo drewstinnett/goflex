@@ -3,27 +3,25 @@ package goflex
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 
+	"github.com/drewstinnett/inspectareq"
 	"github.com/google/uuid"
-	"moul.io/http2curl/v2"
 )
 
-// AuthenticationService is the description of the Authentication endpoints
+// AuthenticationService is the description of the Authentication endpoints.
 type AuthenticationService interface {
 	Token(string, string) (string, error)
 }
 
-// AuthenticationServiceOp is the operator for the AuthenticationService
+// AuthenticationServiceOp is the operator for the AuthenticationService.
 type AuthenticationServiceOp struct {
-	p *Plex
+	p *Flex
 }
 
-// Token returns a new token using username and password authentication
+// Token returns a new token using username and password authentication.
 func (svc *AuthenticationServiceOp) Token(username, password string) (string, error) {
 	body := url.Values{}
 	body.Add("login", username)
@@ -31,7 +29,11 @@ func (svc *AuthenticationServiceOp) Token(username, password string) (string, er
 	body.Add("noGuest", "true")
 	body.Add("skipAuthentication", "true")
 
-	req, err := http.NewRequest("POST", "https://plex.tv/api/v2/users/signin", bytes.NewBuffer([]byte(body.Encode())))
+	req, err := http.NewRequest(
+		http.MethodPost,
+		"https://plex.tv/api/v2/users/signin",
+		bytes.NewBufferString(body.Encode()),
+	)
 	if err != nil {
 		return "", err
 	}
@@ -43,9 +45,8 @@ func (svc *AuthenticationServiceOp) Token(username, password string) (string, er
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	// req.Header.Set("Accept", "application/xml")
 
-	if svc.p.printCurl {
-		command, _ := http2curl.GetCurlCommand(req)
-		fmt.Fprintf(os.Stderr, "%v\n", command)
+	if err := inspectareq.Print(req); err != nil {
+		svc.p.logger.Warn("error printing request", "error", err)
 	}
 
 	got, err := svc.p.client.Do(req)
@@ -65,7 +66,7 @@ func (svc *AuthenticationServiceOp) Token(username, password string) (string, er
 	return ret.AuthToken, nil
 }
 
-// TokenResponse is what we get back from the new token request
+// TokenResponse is what we get back from the new token request.
 type TokenResponse struct {
 	XMLName                 xml.Name `xml:"user"`
 	Text                    string   `xml:",chardata"`

@@ -3,11 +3,12 @@ package goflex
 import (
 	"encoding/xml"
 	"fmt"
+	"net/http"
 	"net/url"
 	"time"
 )
 
-// ServerService describes the Server endpoints
+// ServerService describes the Server endpoints.
 type ServerService interface {
 	Identity() (*IdentityResponse, error)
 	MachineID() (string, error)
@@ -19,49 +20,49 @@ type ServerService interface {
 	// Notifications()
 }
 
-// ServerServiceOp is the operator for the ServerService
+// ServerServiceOp is the operator for the ServerService.
 type ServerServiceOp struct {
-	p *Plex
+	p *Flex
 	// identityCache *IdentityResponse
 }
 
-// Search searches the plex libraries
+// Search searches the plex libraries.
 func (svc *ServerServiceOp) Search(q string) (*Search, error) {
 	var ret searchResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/search?query=%v", svc.p.baseURL, url.QueryEscape(q))), &ret, nil); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest(http.MethodGet, fmt.Sprintf("%v/search?query=%v", svc.p.baseURL, url.QueryEscape(q))), &ret, nil); err != nil {
 		return nil, err
 	}
 	return &ret.Search, nil
 }
 
-// Accounts returns accounts
+// Accounts returns accounts.
 func (svc *ServerServiceOp) Accounts() (*Accounts, error) {
 	var ret accountsResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/accounts", svc.p.baseURL)), &ret, &cacheConfig{prefix: "accounts", ttl: time.Hour * 6}); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest(http.MethodGet, fmt.Sprintf("%v/accounts", svc.p.baseURL)), &ret, &cacheConfig{prefix: "accounts", ttl: time.Hour * 6}); err != nil {
 		return nil, err
 	}
 	return &ret.Accounts, nil
 }
 
-// Servers returns a list of plex servers
+// Servers returns a list of plex servers.
 func (svc *ServerServiceOp) Servers() (*Servers, error) {
 	var ret serversResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/servers", svc.p.baseURL)), &ret, &cacheConfig{prefix: "servers", ttl: time.Hour * 6}); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest(http.MethodGet, fmt.Sprintf("%v/servers", svc.p.baseURL)), &ret, &cacheConfig{prefix: "servers", ttl: time.Hour * 6}); err != nil {
 		return nil, err
 	}
 	return &ret.Servers, nil
 }
 
-// Capabilities returns the capabilities of a host
+// Capabilities returns the capabilities of a host.
 func (svc *ServerServiceOp) Capabilities() (*Capabilities, error) {
 	var ret capabilitiesResponse
-	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/", svc.p.baseURL)), &ret, &cacheConfig{prefix: "capabilities", ttl: time.Hour * 6}); err != nil {
+	if err := svc.p.sendRequestJSON(mustNewRequest(http.MethodGet, fmt.Sprintf("%v/", svc.p.baseURL)), &ret, &cacheConfig{prefix: "capabilities", ttl: time.Hour * 6}); err != nil {
 		return nil, err
 	}
 	return &ret.Capabilities, nil
 }
 
-// Preferences returns server preferences
+// Preferences returns server preferences.
 func (svc *ServerServiceOp) Preferences() (*Preferences, error) {
 	var ret prefsResponse
 	if err := svc.p.sendRequestJSON(mustNewRequest("GET", fmt.Sprintf("%v/:/prefs", svc.p.baseURL)), &ret, &cacheConfig{prefix: "prefs", ttl: time.Hour * 1}); err != nil {
@@ -70,7 +71,7 @@ func (svc *ServerServiceOp) Preferences() (*Preferences, error) {
 	return &ret.Preferences, nil
 }
 
-// MachineID returns the ServerID
+// MachineID returns the ServerID.
 func (svc *ServerServiceOp) MachineID() (string, error) {
 	got, err := svc.Identity()
 	if err != nil {
@@ -88,7 +89,7 @@ func (svc *ServerServiceOp) Identity() (*IdentityResponse, error) {
 	return &ret, nil
 }
 
-// IdentityResponse is the response back from the identity endpoint
+// IdentityResponse is the response back from the identity endpoint.
 type IdentityResponse struct {
 	XMLName           xml.Name `xml:"MediaContainer"`
 	Text              string   `xml:",chardata"`
@@ -103,7 +104,7 @@ type capabilitiesResponse struct {
 	Capabilities Capabilities `json:"MediaContainer"`
 }
 
-// Capabilities describes the capabilities of the connected server
+// Capabilities describes the capabilities of the connected server.
 type Capabilities struct {
 	Size                          int    `json:"size"`
 	Allowcameraupload             bool   `json:"allowCameraUpload"`
@@ -166,7 +167,7 @@ type prefsResponse struct {
 	Preferences Preferences `json:"MediaContainer"`
 }
 
-// Preferences are the preferences set on the server
+// Preferences are the preferences set on the server.
 type Preferences struct {
 	Size    int `json:"size"`
 	Setting []struct {
@@ -187,13 +188,13 @@ type serversResponse struct {
 	Servers Servers `json:"MediaContainer"`
 }
 
-// Servers is multiple plex servers
+// Servers is multiple plex servers.
 type Servers struct {
 	Size   int      `json:"size"`
 	Server []Server `json:"Server"`
 }
 
-// Server represents a plex server
+// Server represents a plex server.
 type Server struct {
 	Name              string `json:"name"`
 	Host              string `json:"host"`
@@ -207,7 +208,7 @@ type accountsResponse struct {
 	Accounts Accounts `json:"MediaContainer"`
 }
 
-// Accounts are accounts tied to a given server
+// Accounts are accounts tied to a given server.
 type Accounts struct {
 	Size       int    `json:"size"`
 	Identifier string `json:"identifier"`
@@ -227,7 +228,7 @@ type searchResponse struct {
 	Search Search `json:"MediaContainer"`
 }
 
-// Metadata is metadata for a search item
+// Metadata is metadata for a search item.
 type Metadata struct {
 	AllowSync             bool    `json:"allowSync"`
 	LibrarySectionID      int     `json:"librarySectionID"`
@@ -335,7 +336,7 @@ type Metadata struct {
 	ViewOffset             int     `json:"viewOffset,omitempty"`
 }
 
-// Search represents search results
+// Search represents search results.
 type Search struct {
 	Size            int        `json:"size"`
 	Identifier      string     `json:"identifier"`
@@ -349,12 +350,12 @@ type Search struct {
 	} `json:"Provider"`
 }
 
-// Episodes returns episodes from a search result
+// Episodes returns episodes from a search result.
 func (s Search) Episodes() (EpisodeList, error) {
 	ret := EpisodeList{}
 	for _, item := range s.Metadata {
 		if item.Type == MediaTypeEpisode {
-			e, err := episodeWith(item)
+			e, err := episodeWithMetadata(item)
 			if err != nil {
 				return nil, err
 			}
@@ -364,7 +365,7 @@ func (s Search) Episodes() (EpisodeList, error) {
 	return ret, nil
 }
 
-// Shows returns a list of shows from the search
+// Shows returns a list of shows from the search.
 func (s Search) Shows() (ShowList, error) {
 	ret := ShowList{}
 	for _, item := range s.Metadata {

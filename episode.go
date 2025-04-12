@@ -185,7 +185,7 @@ func (e Episode) slug() string {
 	return fmt.Sprintf("%v:%v:%v", e.Season, e.Season, e.Episode)
 }
 
-func episodeWith(m Metadata) (*Episode, error) {
+func episodeWithMetadata(m Metadata) (*Episode, error) {
 	if m.RatingKey == "" {
 		return nil, errors.New("missing rating key")
 	}

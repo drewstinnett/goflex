@@ -8,7 +8,7 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	c := NewCacheWithGC(time.Millisecond * 10)
+	c := newCacheWithGC(time.Millisecond * 10)
 
 	// Set a new key with a short cache
 	c.Set("foo", "foo", time.Second*2)
