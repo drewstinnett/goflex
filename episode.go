@@ -19,6 +19,7 @@ type Episode struct {
 	Episode        EpisodeNumber
 	Watched        *time.Time
 	ViewCount      int
+	ViewOffset     *time.Duration
 	Duration       time.Duration
 }
 
@@ -165,8 +166,8 @@ func (l EpisodeList) slugs() []string {
 // String fulfills the Stringer interface
 func (e Episode) String() string {
 	var ret string
-	switch {
-	case e.Show == "":
+	switch e.Show {
+	case "":
 		ret = fmt.Sprintf("%v - %v", e.ID, e.Title)
 	default:
 		ret = fmt.Sprintf("%v - S%02dE%02d - %v", e.Show, e.Season, e.Episode, e.Title)
@@ -183,6 +184,14 @@ func (e Episode) String() string {
 // slug returns a unique string for a given episode
 func (e Episode) slug() string {
 	return fmt.Sprintf("%v:%v:%v", e.Season, e.Season, e.Episode)
+}
+
+// Remaining returns the remaining time for the episode
+func (e Episode) Remaining() time.Duration {
+	if e.ViewOffset == nil {
+		return e.Duration
+	}
+	return e.Duration - *e.ViewOffset
 }
 
 func episodeWithMetadata(m Metadata) (*Episode, error) {

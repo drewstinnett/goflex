@@ -44,8 +44,8 @@ func init() {
 func initConfig() {
 	// Slog
 	opts := log.Options{
-		ReportTimestamp: true,
-		Prefix:          "goflex 🍿 ",
+		// ReportTimestamp: true,
+		Prefix: "goflex 🍿 ",
 	}
 	if verbose {
 		opts.Level = log.DebugLevel
@@ -59,9 +59,6 @@ func newPlex() *goflex.Flex {
 		goflex.WithBaseURL(os.Getenv("PLEX_URL")),
 		goflex.WithToken(os.Getenv("PLEX_TOKEN")),
 		goflex.WithGCInterval(gcInterval),
-	}
-	if os.Getenv("DEBUG_CURL") != "" {
-		opts = append(opts, goflex.WithPrintCurl())
 	}
 	p, err := goflex.New(opts...)
 	if err != nil {

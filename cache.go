@@ -28,6 +28,7 @@ type cache struct {
 	expiries   map[string]time.Time
 	gcRunning  bool
 	gcInterval time.Duration
+	logger     *slog.Logger
 }
 
 type cacheItem struct {
@@ -40,6 +41,7 @@ func newCache() *cache {
 		data:       make(map[string]cacheItem),
 		expiries:   make(map[string]time.Time),
 		gcInterval: time.Minute * 1,
+		logger:     slog.Default(),
 	}
 }
 
@@ -113,7 +115,7 @@ func (c *cache) DeletePrefix(prefix string) {
 }
 
 func (c *cache) startGC() {
-	slog.Debug("starting garbage collection", "interval", c.gcInterval)
+	c.logger.Debug("starting garbage collection", "interval", c.gcInterval)
 	ticker := time.NewTicker(c.gcInterval)
 	defer ticker.Stop()
 
@@ -121,7 +123,7 @@ func (c *cache) startGC() {
 		c.mutex.Lock()
 		for k, expiry := range c.expiries {
 			if time.Now().After(expiry) {
-				slog.Debug("garbage collecting cache key", "key", k, "expired", expiry)
+				c.logger.Debug("garbage collecting cache key", "key", k, "expired", expiry)
 				c.deleteWithKey(k)
 			}
 		}

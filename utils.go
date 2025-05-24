@@ -38,8 +38,8 @@ func fromPTR[T any](ptr *T) T {
 	return zero
 }
 
-const DAY_HOURS = 24
+const DayHours = 24
 
 func daysToDuration(days int) time.Duration {
-	return time.Duration(days) * time.Hour * DAY_HOURS
+	return time.Duration(days) * time.Hour * DayHours
 }

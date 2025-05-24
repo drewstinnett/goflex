@@ -90,7 +90,7 @@ var randomCmdDeprecated = &cobra.Command{
 
 		if refillPlaylist {
 			slog.Debug("attempting to refill playlist", "playlist", args[0], "reason", refillReason)
-			if err := p.Playlists.Clear(playlist.ID); err != nil {
+			if err := p.Playlists.Clear(*playlist); err != nil {
 				return err
 			}
 

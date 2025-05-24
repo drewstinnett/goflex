@@ -2,7 +2,6 @@ package goflex
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
@@ -97,10 +96,10 @@ func (svc *SessionServiceOp) HistoryEpisodes(since time.Time, shows ...ShowTitle
 		case item.Watched == nil:
 			continue
 		case item.Watched.Before(since):
-			slog.Debug("skipping because of since", "item", item, "since", since)
+			svc.p.logger.Debug("skipping because of since", "item", item, "since", since)
 			continue
 		default:
-			slog.Debug("adding item to ret", "item", item)
+			svc.p.logger.Debug("adding item to ret", "item", item)
 			ret = append(ret, item)
 		}
 	}
@@ -126,26 +125,11 @@ func (s SessionServiceOp) ActiveEpisodes(shows ...ShowTitle) (EpisodeList, error
 		if (len(shows) > 0) && !slices.Contains(shows, ShowTitle(item.GrandparentTitle)) {
 			continue
 		}
-		id, err := strconv.Atoi(item.RatingKey)
+		episode, err := episodeWithVideo(item)
 		if err != nil {
 			return nil, err
 		}
-		index, err := strconv.Atoi(item.Index)
-		if err != nil {
-			return nil, err
-		}
-		season, err := strconv.Atoi(item.ParentIndex)
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, Episode{
-			ID:      id,
-			Title:   item.Title,
-			Show:    ShowTitle(item.GrandparentTitle),
-			Season:  SeasonNumber(season),
-			Episode: EpisodeNumber(index),
-			// p:       s.p,
-		})
+		ret = append(ret, *episode)
 	}
 
 	return ret, nil

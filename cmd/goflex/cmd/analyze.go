@@ -32,7 +32,7 @@ var analyzeCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("Took %v days to watch\n", int(duration.Hours()/goflex.DAY_HOURS))
+		fmt.Printf("Took %v days to watch\n", int(duration.Hours()/goflex.DayHours))
 
 		return nil
 	},

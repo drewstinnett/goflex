@@ -18,11 +18,11 @@ func TestPlaylistList(t *testing.T) {
 		switch url := r.URL.Path; {
 		case strings.HasSuffix(url, "/playlists"):
 			expected, err := os.ReadFile("testdata/playlists.xml")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			fmt.Fprint(w, string(expected))
 		case strings.HasSuffix(url, "/items"):
 			expected, err := os.ReadFile("testdata/playlist-items.xml")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			fmt.Fprint(w, string(expected))
 		default:
 			panic("how did we get here? url: " + r.URL.Path)
@@ -71,7 +71,6 @@ func TestNewRandomizeRequest(t *testing.T) {
 						Show: "Show1",
 					},
 					LookbackDays: 7,
-					// RefillAt: 10,
 				},
 			},
 			opts:    nil,
@@ -84,7 +83,6 @@ func TestNewRandomizeRequest(t *testing.T) {
 							Show: "Show1",
 						},
 						LookbackDays: 7,
-						// RefillAt: 10,
 					},
 				},
 				RefillAt: 5,
@@ -120,7 +118,7 @@ func TestNewRandomizeRequest(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.EqualError(t, err, tt.wantErr.Error())
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tt.wantReq, req)
 			}
 		})

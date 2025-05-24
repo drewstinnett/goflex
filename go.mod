@@ -1,6 +1,6 @@
 module github.com/drewstinnett/go-flex
 
-go 1.23.3
+go 1.24
 
 require (
 	github.com/charmbracelet/log v0.4.0
@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/sync v0.13.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

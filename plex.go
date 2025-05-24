@@ -27,6 +27,7 @@ type Flex struct {
 	printCurl      bool
 	logger         *slog.Logger
 	maxSleep       time.Duration
+	minSleep       time.Duration
 	client         *http.Client
 	cache          cache
 	Playlists      PlaylistService
@@ -45,6 +46,7 @@ func New(opts ...func(*Flex)) (*Flex, error) {
 		userAgent: "goflex " + version,
 		cache:     *newCache(),
 		maxSleep:  60 * time.Minute,
+		minSleep:  5 * time.Minute,
 		logger:    slog.Default(),
 	}
 	for _, opt := range opts {
@@ -65,6 +67,21 @@ func New(opts ...func(*Flex)) (*Flex, error) {
 	p.Library = &LibraryServiceOp{p: p}
 	p.Authentication = &AuthenticationServiceOp{p: p}
 	return p, nil
+}
+
+// WithFlexConfig sets the config for a new plex
+func WithFlexConfig(c FlexConfig) func(*Flex) {
+	return func(p *Flex) {
+		if c.URL != "" {
+			p.baseURL = c.URL
+		}
+		if c.Token != "" {
+			p.token = c.Token
+		}
+		if c.GarbageCollectionInterval != nil {
+			p.cache = *newCacheWithGC(*c.GarbageCollectionInterval)
+		}
+	}
 }
 
 // WithGCInterval sets the garbage collection interval
@@ -160,10 +177,10 @@ func (p *Flex) sendRequestType(req *http.Request, v any, contentType string, cc 
 	} else {
 		got, ok := p.cache.Get(key)
 		if !ok {
-			slog.Debug("cache not found, fetching fresh", "key", key)
+			p.logger.Debug("cache not found, fetching fresh", "key", key)
 			freshen = true
 		} else {
-			slog.Debug("using cache", "key", key)
+			p.logger.Debug("using cache", "key", key)
 			content = got.([]byte)
 		}
 	}
@@ -204,7 +221,7 @@ type errorResponse struct {
 
 func dclose(c io.Closer) {
 	if err := c.Close(); err != nil {
-		slog.Error("error closing item", "error", err)
+		slog.Error("error closing item", "error", err) // nolint
 	}
 }
 
@@ -226,5 +243,8 @@ func (p *Flex) episodeID(show ShowTitle, season SeasonNumber, episode EpisodeNum
 }
 
 type FlexConfig struct {
-	RandomizePlaylists RandomizeRequestList `yaml:"randomize_playlists"`
+	URL                       string               `yaml:"url"`
+	Token                     string               `yaml:"token"`
+	GarbageCollectionInterval *time.Duration       `yaml:"gc_interval"`
+	Randomize                 RandomizeRequestList `yaml:"randomize"`
 }

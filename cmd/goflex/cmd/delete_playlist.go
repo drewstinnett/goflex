@@ -20,7 +20,7 @@ var deletePlaylistCmd = &cobra.Command{
 			return err
 		}
 		slog.Info("deleting", "playlist", pl.Title, "id", pl.ID)
-		return p.Playlists.Delete(pl.ID)
+		return p.Playlists.Delete(*pl)
 	},
 }
 

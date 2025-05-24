@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,8 +29,8 @@ func TestLibraries(t *testing.T) {
 	require.NoError(t, err)
 	got, err := p.Library.List()
 	require.NoError(t, err)
-	require.Equal(t, 6, len(got))
-	require.Equal(t, 1, hits)
+	assert.Len(t, got, 6)
+	assert.Equal(t, 1, hits)
 
 	// Call again, but this time we should use the cache, so no additional hits
 	_, err = p.Library.List()

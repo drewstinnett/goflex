@@ -1,5 +1,6 @@
 ---
-- playlist: Test Playlist
+# playlist: Test Playlist
+- playlist: Impractical Jokers (Randomized)
   refill_at: 3
   series:
     - lookback_days: 3

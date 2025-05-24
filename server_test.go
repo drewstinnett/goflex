@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,11 +34,11 @@ func TestSearch(t *testing.T) {
 
 	shows, err := got.Shows()
 	require.NoError(t, err)
-	require.Equal(t, 1, len(shows))
-	require.EqualValues(t, "Family Guy", shows[0].Title)
+	assert.Len(t, shows, 1)
+	assert.EqualValues(t, "Family Guy", shows[0].Title)
 
 	episodes, err := got.Episodes()
 	require.NoError(t, err)
-	require.EqualValues(t, 15, len(episodes))
-	require.EqualValues(t, "'Family Guy' Through The Years", episodes[0].Title)
+	require.Len(t, episodes, 15)
+	require.Equal(t, ShowTitle("'Family Guy' Through The Years"), ShowTitle(episodes[0].Title))
 }

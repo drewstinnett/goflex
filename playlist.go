@@ -30,10 +30,10 @@ type PlaylistService interface {
 	GetWithName(PlaylistTitle) (*Playlist, error)
 	Create(PlaylistTitle, PlaylistType, bool) error
 	GetOrCreate(PlaylistTitle, PlaylistType, bool) (*Playlist, bool, error)
-	Delete(int) error
+	Delete(Playlist) error
 	DeleteEpisode(PlaylistTitle, ShowTitle, SeasonNumber, EpisodeNumber) error
 	Exists(PlaylistTitle) (bool, error)
-	Clear(int) error
+	Clear(Playlist) error
 	InsertEpisodes(int, EpisodeList) error
 	Randomize(RandomizeRequest) (*RandomizeResponse, error)
 	Episodes(Playlist) (EpisodeList, error)
@@ -57,6 +57,10 @@ type Playlist struct {
 	Title    PlaylistTitle
 	GUID     string
 	Duration time.Duration
+}
+
+func (p Playlist) cacheKey() string {
+	return "playlist-episodes-" + fmt.Sprint(p.ID)
 }
 
 // RandomizeSeries defines parameters on randomizing a specific show
@@ -103,7 +107,6 @@ func NewRandomizeRequest(
 
 // RandomizeResponse is what we get back from requesting a Playlist be randomized.
 type RandomizeResponse struct {
-	// Refilled         bool          `json:"refilled,omitempty"`
 	RefillReason     string        `json:"reason,omitempty"`
 	Created          bool          `json:"created,omitempty"`
 	Removed          EpisodeList   `json:"removed,omitempty"`
@@ -124,7 +127,7 @@ func (svc *PlaylistServiceOp) processCreation(resp *RandomizeResponse, playlist 
 		if err != nil {
 			return err
 		}
-		slog.Debug("found existing playlist", "count", len(resp.OriginalEpisodes))
+		svc.p.logger.Debug("found existing playlist", "count", len(resp.OriginalEpisodes))
 	}
 	return nil
 }
@@ -147,7 +150,15 @@ func (svc *PlaylistServiceOp) processViewed(
 
 		// Get viewed
 		since := -daysToDuration(series.LookbackDays)
-		slog.Debug("looking back for episodes", "days", series.LookbackDays, "since", since, "show", series.Filter.Show)
+		svc.p.logger.Debug(
+			"looking back for episodes",
+			"days",
+			series.LookbackDays,
+			"since",
+			since,
+			"show",
+			series.Filter.Show,
+		)
 		viewedMap[series.Filter.Show], err = svc.p.Sessions.HistoryEpisodes(
 			time.Now().Add(since),
 			series.Filter.Show,
@@ -155,11 +166,11 @@ func (svc *PlaylistServiceOp) processViewed(
 		if err != nil {
 			return nil, err
 		}
-		slog.Debug("found viewed episodes", "count", len(viewedMap[series.Filter.Show]))
+		svc.p.logger.Debug("found viewed episodes", "count", len(viewedMap[series.Filter.Show]))
 
 		// Figure out remaining
 		remaining, removed := resp.OriginalEpisodes.Subtract(viewedMap[series.Filter.Show])
-		slog.Debug(
+		svc.p.logger.Debug(
 			"removed viewed episodes",
 			"removed",
 			len(removed),
@@ -189,40 +200,40 @@ func (svc *PlaylistServiceOp) initRandomize(req RandomizeRequest) (*RandomizeRes
 func (svc *PlaylistServiceOp) Randomize(req RandomizeRequest) (*RandomizeResponse, error) {
 	resp, playlist, err := svc.initRandomize(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error initializing randomize: %w", err)
 	}
 
 	if err := svc.processCreation(resp, playlist); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error processing creation: %w", err)
 	}
 
 	viewedMap, err := svc.processViewed(resp, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error processing viewed episodes: %w", err)
 	}
 
 	// Did we dip below the refill line?
 	// DREW: Figure out the runtime and base refill on that
-	// slog.Info("remain", "remaining", resp.Remaining.Runtime())
+	// svc.p.logger.Info("remain", "remaining", resp.Remaining.Runtime())
 	if (resp.RefillReason == "") && len(resp.Remaining) <= req.RefillAt {
 		resp.RefillReason = fmt.Sprintf("playlist dipped below %v, was at: %v", req.RefillAt, len(resp.Remaining))
 	}
 
 	// Remove all the stuff we have already seen
 	if err := svc.removeSeen(resp, req, *playlist); err != nil {
-		return nil, err
+		svc.p.logger.Warn("error removing seen episodes", "error", err)
 	}
 
 	// Refill if necessary
 	if resp.RefillReason != "" {
 		if err := svc.refillRand(resp, req, *playlist, viewedMap); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error refilling playlist: %w", err)
 		}
 	}
 
 	// Figure out when we should check again
 	if resp.SleepFor, err = svc.sleepFor(*playlist); err != nil {
-		return nil, err
+		slog.Warn("error finding sleep for playlist", "playlist", playlist.Title, "error", err)
 	}
 	return resp, nil
 }
@@ -230,23 +241,31 @@ func (svc *PlaylistServiceOp) Randomize(req RandomizeRequest) (*RandomizeRespons
 func (svc *PlaylistServiceOp) sleepFor(playlist Playlist) (time.Duration, error) {
 	episodes, err := svc.Episodes(playlist)
 	if err != nil {
-		return svc.p.maxSleep, err
+		return svc.p.maxSleep, fmt.Errorf("error fetching episodes: %w", err)
+	}
+	if len(episodes) == 0 {
+		svc.p.logger.Debug("no episodes in playlist, sleeping for max", "playlist", playlist.Title)
+		return svc.p.maxSleep, nil
 	}
 	if len(episodes) > 0 {
-		nextEpisode, err := svc.p.Shows.Episode(episodes[0].Show, episodes[0].Season, episodes[0].Episode)
-		if err != nil {
-			return svc.p.maxSleep, err
-		}
-		slog.Info("Next", "episode", nextEpisode)
 		currentlyWatching, err := svc.p.Sessions.ActiveEpisodes()
 		if err != nil {
-			return svc.p.maxSleep, err
+			return svc.p.maxSleep, fmt.Errorf("error getting currently watching: %w", err)
+		}
+		// TODO: Sometimes this doesn't return correctly for some reason...
+		nextEpisode, err := svc.p.Shows.Episode(episodes[0].Show, episodes[0].Season, episodes[0].Episode)
+		if err != nil {
+			return svc.p.maxSleep, fmt.Errorf("error getting next episode: %w", err)
 		}
 		for _, item := range currentlyWatching {
-			slog.Info("looking at", "show", item.Show, "next", nextEpisode.Show, "duration", item.Duration)
+			svc.p.logger.Debug("looking at", "show", item.Show, "next", nextEpisode.Show, "duration", item.Duration)
 			if item.Show == nextEpisode.Show {
-				slog.Debug("found currently watching episode", "episode", item.String(), "duration", item.Duration)
-				return item.Duration, nil
+				svc.p.logger.Debug("found currently watching episode",
+					"episode", item.String(),
+					"duration", item.Duration,
+				)
+				// return item.Duration, nil
+				return max((item.Remaining() + (time.Second * 30)), svc.p.minSleep), nil
 			}
 		}
 	}
@@ -259,8 +278,8 @@ func (svc *PlaylistServiceOp) refillRand(
 	playlist Playlist,
 	viewedMap map[ShowTitle]EpisodeList,
 ) error {
-	slog.Debug("attempting to refill playlist", "playlist", req.Playlist, "reason", resp.RefillReason)
-	if err := svc.Clear(playlist.ID); err != nil {
+	svc.p.logger.Debug("attempting to refill playlist", "playlist", req.Playlist, "reason", resp.RefillReason)
+	if err := svc.Clear(playlist); err != nil {
 		return err
 	}
 	for _, series := range req.Series {
@@ -292,7 +311,7 @@ func (svc *PlaylistServiceOp) refillRand(
 			req.RefillAt,
 		)
 	} else {
-		slog.Info("refilling playlist", "title", playlist.Title, "episodes", len(resp.UnviewedEpisodes), "reason", resp.RefillReason)
+		svc.p.logger.Info("refilling playlist", "title", playlist.Title, "episodes", len(resp.UnviewedEpisodes), "reason", resp.RefillReason)
 		return svc.InsertEpisodes(playlist.ID, resp.UnviewedEpisodes)
 	}
 }
@@ -300,17 +319,14 @@ func (svc *PlaylistServiceOp) refillRand(
 func (svc *PlaylistServiceOp) removeSeen(resp *RandomizeResponse, req RandomizeRequest, playlist Playlist) error {
 	// Remove things we have seen
 	if len(resp.Removed) > 0 {
-		slog.Debug(
+		svc.p.logger.Debug(
 			"New length of episodes after removing viewed",
-			"remaining",
-			len(resp.Remaining),
-			"removed",
-			len(resp.Removed),
-			"original",
-			len(resp.OriginalEpisodes),
+			"remaining", len(resp.Remaining),
+			"removed", len(resp.Removed),
+			"original", len(resp.OriginalEpisodes),
 		)
 		for _, item := range resp.Removed {
-			slog.Info("removing episode", "playlist", req.Playlist, "episode", item.String())
+			svc.p.logger.Info("removing episode", "playlist", req.Playlist, "episode", item.String())
 			if err := svc.DeleteEpisode(playlist.Title, item.Show, item.Season, item.Episode); err != nil {
 				return err
 			}
@@ -346,8 +362,8 @@ func (svc *PlaylistServiceOp) InsertEpisodes(playlistID int, episodes EpisodeLis
 }
 
 // Clear removes all items from a playlist.
-func (svc *PlaylistServiceOp) Clear(id int) error {
-	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%v/playlists/%v/items", svc.p.baseURL, id), nil)
+func (svc *PlaylistServiceOp) Clear(p Playlist) error {
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%v/playlists/%v/items", svc.p.baseURL, p.ID), nil)
 	if err != nil {
 		return err
 	}
@@ -355,14 +371,13 @@ func (svc *PlaylistServiceOp) Clear(id int) error {
 	if err := svc.p.sendRequestXML(req, &res, nil); err != nil {
 		return err
 	}
-	// TODO: Clear the playlist cache here
-	svc.p.cache.DeletePrefix("playlist-episodes-" + fmt.Sprint(id))
+	svc.p.cache.DeletePrefix(p.cacheKey())
 	return nil
 }
 
-// Delete deletees a playlist.
-func (svc *PlaylistServiceOp) Delete(id int) error {
-	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%v/playlists/%v", svc.p.baseURL, id), nil)
+// Delete deletes a playlist.
+func (svc *PlaylistServiceOp) Delete(p Playlist) error {
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%v/playlists/%v", svc.p.baseURL, p.ID), nil)
 	if err != nil {
 		return err
 	}
@@ -370,7 +385,7 @@ func (svc *PlaylistServiceOp) Delete(id int) error {
 	if err := svc.p.sendRequestXML(req, &res, nil); err != nil {
 		return err
 	}
-	// DREW: Clear the playlist cache here
+	svc.p.cache.DeletePrefix(p.cacheKey())
 	return nil
 }
 
@@ -490,22 +505,32 @@ func (svc *PlaylistServiceOp) GetWithName(n PlaylistTitle) (*Playlist, error) {
 func episodeWithVideo(item Video) (*Episode, error) {
 	parentI, err := strconv.Atoi(item.ParentIndex)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error converting ParentIndex: %w", err)
 	}
 	index, err := strconv.Atoi(item.Index)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error converting Index: %w", err)
+	}
+
+	var viewOffset *time.Duration
+	if item.ViewOffset != "" {
+		var err error
+		if index, err = strconv.Atoi(item.ViewOffset); err != nil {
+			return nil, fmt.Errorf("error converting ViewOffset: %w", err)
+		}
+		viewOffset = toPTR(time.Duration(index) * time.Millisecond)
+
 	}
 
 	// Figure out how long the episode is.
 	du, err := strconv.Atoi(item.Duration)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error converting Duration: %w", err)
 	}
 
 	id, err := strconv.Atoi(item.RatingKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error converting RatingKey: %w", err)
 	}
 
 	var viewedInt int64
@@ -516,15 +541,17 @@ func episodeWithVideo(item Video) (*Episode, error) {
 			return nil, err
 		}
 	}
-	playlistID, err := strconv.Atoi(item.PlaylistItemID)
-	if err != nil {
-		return nil, err
+	playlistID := 0
+	if item.PlaylistItemID != "" {
+		if playlistID, err = strconv.Atoi(item.PlaylistItemID); err != nil {
+			return nil, fmt.Errorf("error converting PlaylistItemID: %w", err)
+		}
 	}
 	vc := 0
 	if item.ViewCount != "" {
 		var err error
 		if vc, err = strconv.Atoi(item.ViewCount); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error converting ViewCount: %w", err)
 		}
 	}
 	viewed := time.Unix(viewedInt, 0)
@@ -535,6 +562,7 @@ func episodeWithVideo(item Video) (*Episode, error) {
 		Show:           ShowTitle(item.GrandparentTitle),
 		Season:         SeasonNumber(parentI),
 		Episode:        EpisodeNumber(index),
+		ViewOffset:     viewOffset,
 		Watched:        &viewed,
 		Duration:       time.Duration(du) * time.Millisecond,
 		ViewCount:      vc,
@@ -560,7 +588,7 @@ func (svc *PlaylistServiceOp) Episodes(p Playlist) (EpisodeList, error) {
 	ret := EpisodeList{}
 	var plr PlaylistResponse
 	if err := svc.p.sendRequestXML(mustNewRequest(http.MethodGet, fmt.Sprintf("%v/playlists/%v/items", svc.p.baseURL, p.ID)), &plr,
-		&cacheConfig{prefix: "playlist-episodes-" + fmt.Sprint(p.ID), ttl: time.Minute * 60}); err != nil {
+		&cacheConfig{prefix: p.cacheKey(), ttl: time.Minute * 60}); err != nil {
 		return nil, err
 	}
 	for _, item := range plr.Video {
@@ -573,12 +601,12 @@ func (svc *PlaylistServiceOp) Episodes(p Playlist) (EpisodeList, error) {
 	return ret, nil
 }
 
-// DeleteItem removes an item from the given playlist.
-func (svc *PlaylistServiceOp) DeleteItem(id int, keys ...int) error {
+// deleteItem removes an item from the given playlist.
+func (svc *PlaylistServiceOp) deleteItem(p Playlist, keys ...int) error {
 	for _, k := range keys {
 		req, err := http.NewRequest(
 			http.MethodDelete,
-			fmt.Sprintf("%v/playlists/%v/items/%v", svc.p.baseURL, id, k),
+			fmt.Sprintf("%v/playlists/%v/items/%v", svc.p.baseURL, p.ID, k),
 			nil,
 		)
 		if err != nil {
@@ -586,9 +614,10 @@ func (svc *PlaylistServiceOp) DeleteItem(id int, keys ...int) error {
 		}
 		var got struct{}
 		if err := svc.p.sendRequestXML(req, &got, nil); err != nil {
-			return err
+			return fmt.Errorf("error deleting item: %w", err)
 		}
 	}
+	svc.p.cache.DeletePrefix(p.cacheKey())
 	return nil
 }
 
@@ -631,12 +660,12 @@ func (svc *PlaylistServiceOp) DeleteEpisode(
 	}
 	pl, err := svc.GetWithName(playlist)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting playlist: %w", err)
 	}
 
 	k, err := svc.EpisodeID(*pl, show, season, episode)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting episode ID: %w", err)
 	}
-	return svc.DeleteItem(pl.ID, k)
+	return svc.deleteItem(*pl, k)
 }

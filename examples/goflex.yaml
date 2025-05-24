@@ -1,0 +1,12 @@
+---
+url: http://192.168.86.4:32400
+token: cU8fbbx4ox7oVs-FKhz_
+randomize:
+  - playlist: Impractical Jokers (Randomized)
+    refill_at: 3
+    series:
+      - lookback_days: 3
+        episodes:
+          show: "Impractical Jokers"
+          earliest_season: 1
+          latest_season: 9
