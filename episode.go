@@ -183,7 +183,7 @@ func (e Episode) String() string {
 
 // slug returns a unique string for a given episode
 func (e Episode) slug() string {
-	return fmt.Sprintf("%v:%v:%v", e.Season, e.Season, e.Episode)
+	return fmt.Sprintf("%v:%v:%v", e.Show, e.Season, e.Episode)
 }
 
 // Remaining returns the remaining time for the episode

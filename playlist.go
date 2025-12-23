@@ -198,6 +198,12 @@ func (svc *PlaylistServiceOp) initRandomize(req RandomizeRequest) (*RandomizeRes
 
 // Randomize randomizes a playlist with episodes from given series.
 func (svc *PlaylistServiceOp) Randomize(req RandomizeRequest) (*RandomizeResponse, error) {
+	// Check server health and flush caches if server was previously down
+	// This ensures we don't use stale data after a server restart
+	if err := svc.p.CheckServerHealth(); err != nil {
+		return nil, fmt.Errorf("server health check failed: %w", err)
+	}
+
 	resp, playlist, err := svc.initRandomize(req)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing randomize: %w", err)

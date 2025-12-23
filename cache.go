@@ -114,6 +114,17 @@ func (c *cache) DeletePrefix(prefix string) {
 	}
 }
 
+// FlushAll removes all entries from the cache.
+func (c *cache) FlushAll() {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	for k := range c.data {
+		c.deleteWithKey(k)
+	}
+	c.logger.Debug("flushed all cache entries")
+}
+
 func (c *cache) startGC() {
 	c.logger.Debug("starting garbage collection", "interval", c.gcInterval)
 	ticker := time.NewTicker(c.gcInterval)

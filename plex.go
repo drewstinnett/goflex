@@ -30,6 +30,7 @@ type Flex struct {
 	minSleep       time.Duration
 	client         *http.Client
 	cache          cache
+	serverWasDown  bool // tracks if server was unreachable
 	Playlists      PlaylistService
 	Sessions       SessionService
 	Media          MediaService
@@ -143,6 +144,7 @@ func (p *Flex) sendRequestJSON(req *http.Request, v any, cc *cacheConfig) error 
 func (p *Flex) doReq(req *http.Request) ([]byte, error) {
 	res, err := p.client.Do(req)
 	if err != nil {
+		p.serverWasDown = true
 		return nil, err
 	}
 	defer dclose(res.Body)
@@ -159,6 +161,24 @@ func (p *Flex) doReq(req *http.Request) ([]byte, error) {
 		return nil, fmt.Errorf("unknown error, status code: %d", res.StatusCode)
 	}
 	return content, nil
+}
+
+// CheckServerHealth checks if the server is reachable and flushes the cache
+// if the server was previously down. This should be called before operations
+// that rely on cached data to ensure stale data is cleared after a server restart.
+func (p *Flex) CheckServerHealth() error {
+	_, err := p.Server.Identity()
+	if err != nil {
+		p.serverWasDown = true
+		return fmt.Errorf("server health check failed: %w", err)
+	}
+
+	if p.serverWasDown {
+		p.logger.Info("server reconnected after being down, flushing all caches")
+		p.cache.FlushAll()
+		p.serverWasDown = false
+	}
+	return nil
 }
 
 func (p *Flex) sendRequestType(req *http.Request, v any, contentType string, cc *cacheConfig) error {
