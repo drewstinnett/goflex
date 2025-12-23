@@ -24,15 +24,15 @@ var randomCmd = &cobra.Command{
 		}
 
 		errs := errgroup.Group{}
-		for idx, config := range configs {
+		for configIdx, config := range configs {
 			slog.Debug("got requests", "requests", config.Randomize)
 			if len(config.Randomize) == 0 {
-				slog.Warn("config has no randomize requests", "idx", idx)
+				slog.Warn("config has no randomize requests", "idx", configIdx)
 			}
-			for _, request := range config.Randomize {
-				idx := idx
-				request := request
-				startRandomizer(&errs, idx, request, flexes[idx])
+			for showIdx, request := range config.Randomize {
+				///idx := idx
+				///request := request
+				startRandomizer(&errs, showIdx, request, flexes[configIdx])
 			}
 		}
 		return errs.Wait()
@@ -45,9 +45,10 @@ func init() {
 
 func startRandomizer(g *errgroup.Group, idx int, req goflex.RandomizeRequest, f *goflex.Flex) {
 	g.Go(func() error {
-		logger := slog.With("idx", idx)
+		logger := slog.With("show-idx", idx)
 		logger.Info("randomizing", "playlist", req.Playlist)
 		for {
+			// TODO: How do we know which plex server to send this to?
 			resp, err := f.Playlists.Randomize(req)
 			if err != nil {
 				return err

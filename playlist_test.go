@@ -13,6 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type mockShowService struct {
+	ShowService
+	episode *Episode
+	err     error
+}
+
 func TestPlaylistList(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch url := r.URL.Path; {
