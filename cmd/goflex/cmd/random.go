@@ -1,9 +1,14 @@
 package cmd
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 
 	goflex "github.com/drewstinnett/go-flex"
@@ -23,19 +28,34 @@ var randomCmd = &cobra.Command{
 			return err
 		}
 
-		errs := errgroup.Group{}
+		// Set up context with signal handling for graceful shutdown
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+		go func() {
+			sig := <-sigChan
+			slog.Info("received signal, initiating graceful shutdown", "signal", sig)
+			cancel()
+		}()
+
+		errs, ctx := errgroup.WithContext(ctx)
 		for configIdx, config := range configs {
 			slog.Debug("got requests", "requests", config.Randomize)
 			if len(config.Randomize) == 0 {
 				slog.Warn("config has no randomize requests", "idx", configIdx)
 			}
 			for showIdx, request := range config.Randomize {
-				///idx := idx
-				///request := request
-				startRandomizer(&errs, showIdx, request, flexes[configIdx])
+				startRandomizer(ctx, errs, showIdx, request, flexes[configIdx])
 			}
 		}
-		return errs.Wait()
+		err = errs.Wait()
+		if err != nil && !errors.Is(err, context.Canceled) {
+			return err
+		}
+		slog.Info("shutdown complete")
+		return nil
 	},
 }
 
@@ -43,18 +63,111 @@ func init() {
 	rootCmd.AddCommand(randomCmd)
 }
 
-func startRandomizer(g *errgroup.Group, idx int, req goflex.RandomizeRequest, f *goflex.Flex) {
+const (
+	maxRetries       = 10
+	initialBackoff   = 30 * time.Second
+	maxBackoff       = 30 * time.Minute
+	backoffMultiplier = 2.0
+)
+
+// isFatalError returns true if the error should not be retried.
+// Fatal errors include configuration problems and missing resources.
+func isFatalError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	// These indicate configuration or setup problems that won't resolve with retries
+	fatalPatterns := []string{
+		"show does not exist",
+		"playlist must not be empty",
+		"series muset not be empty", // typo preserved from original code
+		"must set plex baseurl",
+		"must set token",
+	}
+	for _, pattern := range fatalPatterns {
+		if strings.Contains(errStr, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+func calculateBackoff(consecutiveErrors int) time.Duration {
+	if consecutiveErrors <= 0 {
+		return initialBackoff
+	}
+	backoff := float64(initialBackoff)
+	for i := 0; i < consecutiveErrors-1; i++ {
+		backoff *= backoffMultiplier
+		if backoff > float64(maxBackoff) {
+			return maxBackoff
+		}
+	}
+	return time.Duration(backoff)
+}
+
+func startRandomizer(ctx context.Context, g *errgroup.Group, idx int, req goflex.RandomizeRequest, f *goflex.Flex) {
 	g.Go(func() error {
-		logger := slog.With("show-idx", idx)
-		logger.Info("randomizing", "playlist", req.Playlist)
+		logger := slog.With("show-idx", idx, "playlist", req.Playlist)
+		logger.Info("starting randomizer")
+
+		var consecutiveErrors int
+
 		for {
-			// TODO: How do we know which plex server to send this to?
+			select {
+			case <-ctx.Done():
+				logger.Info("randomizer stopping due to context cancellation")
+				return ctx.Err()
+			default:
+			}
+
 			resp, err := f.Playlists.Randomize(req)
 			if err != nil {
-				return err
+				// Check if this is a fatal error that shouldn't be retried
+				if isFatalError(err) {
+					logger.Error("fatal error, stopping randomizer", "error", err)
+					return fmt.Errorf("fatal error for playlist %q: %w", req.Playlist, err)
+				}
+
+				consecutiveErrors++
+				backoff := calculateBackoff(consecutiveErrors)
+
+				if consecutiveErrors >= maxRetries {
+					logger.Error("max retries exceeded, stopping randomizer",
+						"error", err,
+						"consecutive_errors", consecutiveErrors)
+					return fmt.Errorf("max retries (%d) exceeded for playlist %q: %w", maxRetries, req.Playlist, err)
+				}
+
+				logger.Warn("randomize failed, will retry",
+					"error", err,
+					"consecutive_errors", consecutiveErrors,
+					"backoff", backoff)
+
+				select {
+				case <-ctx.Done():
+					logger.Info("randomizer stopping during backoff")
+					return ctx.Err()
+				case <-time.After(backoff):
+					continue
+				}
 			}
-			logger.Debug("sleeping for", "duration", resp.SleepFor, "playlist", req.Playlist)
-			time.Sleep(resp.SleepFor)
+
+			// Success - reset error counter
+			if consecutiveErrors > 0 {
+				logger.Info("recovered after errors", "previous_consecutive_errors", consecutiveErrors)
+			}
+			consecutiveErrors = 0
+
+			logger.Debug("sleeping until next check", "duration", resp.SleepFor)
+
+			select {
+			case <-ctx.Done():
+				logger.Info("randomizer stopping during sleep")
+				return ctx.Err()
+			case <-time.After(resp.SleepFor):
+			}
 		}
 	})
 }
